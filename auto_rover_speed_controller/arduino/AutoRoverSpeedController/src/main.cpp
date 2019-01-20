@@ -1,5 +1,6 @@
 
 #include <DualVNH5019MotorShield.h>
+#define USE_USBCON
 #include <ros.h>
 #include <geometry_msgs/Twist.h>
 

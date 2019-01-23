@@ -1,0 +1,11 @@
+<launch>
+  <node name="serial_node" pkg="rosserial_python" type="serial_node.py">
+    <param name="port" value="/dev/ttyACM0"/>
+    <param name="baud" value="57600"/>
+  </node>
+
+  <node name="pololu_command_velocity_test" pkg="auto_rover_speed_controller" type="pololu_command_velocity_test.py" output="screen">
+    <param name="sample_rate" value="0.1"/>
+    <param name="frequency" value="0.1"/>
+  </node>
+</launch>

@@ -65,6 +65,7 @@ void setup()
   nh.initNode();
   nh.subscribe(sub);
   nh.advertise(cmd_vel_resp);
+  nh.advertise(encoder_cnts_pub);
 }
 
 void loop()

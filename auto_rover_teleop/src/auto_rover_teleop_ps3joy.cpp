@@ -23,6 +23,7 @@ class TeleopAutoRover
 
         int linear_axis_, angular_axis_, enable_axis_;
         int start_press_cnt_;
+        int rc_max_val_;
         double l_scale_, a_scale_;
         ros::Publisher vel_pub_;
         ros::Subscriber joy_sub_;
@@ -43,19 +44,19 @@ TeleopAutoRover::TeleopAutoRover() :
     // Start button
     enable_axis_(3),
     start_press_cnt_(0),
-    l_scale_(1),
-    a_scale_(1),
+    l_scale_(400),
+    a_scale_(180),
     start_pressed_(false),
     zero_twist_published_(false)
 {
-    ph_.param("linear_axis", linear_axis_, linear_axis_);
-    ph_.param("angular_axis", angular_axis_, angular_axis_);
+    ph_.param("axis_linear", linear_axis_, linear_axis_);
+    ph_.param("axis_angular", angular_axis_, angular_axis_);
     ph_.param("enabled_axis", enable_axis_, enable_axis_);
     ph_.param("scale_angular", a_scale_, a_scale_);
     ph_.param("scale_linear", l_scale_, l_scale_);
 
     vel_pub_ = nh_.advertise<geometry_msgs::Twist>("auto_rover/cmd_vel", 1);
-    joy_sub_ = nh_.subscribe<sensor_msgs::Joy>("joy", 10, &TeleopAutoRover::JoyCallback, this);
+    joy_sub_ = nh_.subscribe<sensor_msgs::Joy>("joy", 1, &TeleopAutoRover::JoyCallback, this);
 
     timer_ = nh_.createTimer(ros::Duration(0.1), boost::bind(&TeleopAutoRover::Publish, this));
 }
@@ -82,8 +83,8 @@ void TeleopAutoRover::JoyCallback(const sensor_msgs::Joy::ConstPtr& joy)
 
     geometry_msgs::Twist vel;
 
-    vel.linear.x = l_scale_ * joy->axes[linear_axis_];
-    vel.angular.z = l_scale_ * joy->axes[angular_axis_];
+    vel.linear.x = std::floor(l_scale_ * joy->axes[linear_axis_]);
+    vel.angular.z = std::floor(a_scale_ * joy->axes[angular_axis_]);
     last_published_ = vel;
 
     start_press_cnt_ = start_press_cnt_ + joy->buttons[enable_axis_];

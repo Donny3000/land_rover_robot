@@ -1,3 +1,1 @@
-Header header
-uint32 front_cnt_
-uint32 rear_cnt_
+int32 wheel_ticks

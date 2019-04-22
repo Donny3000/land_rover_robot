@@ -1,47 +1,47 @@
-
+#include <Servo.h>
 #include <DualVNH5019MotorShield.h>
-#define USE_USBCON
+//#define USE_USBCON
 #include <ros.h>
 #include <geometry_msgs/Twist.h>
 #include <auto_rover_speed_controller/Encoders.h>
 
-#define SPEED_MAX     400
-#define CNTS_PER_REV  100
-#define INT_PIN_FRONT 0
-#define INT_PIN_REAR  1
+#define SPEED_MAX    400
+#define ENCODER_CH_A 18
+#define ENCODER_CH_B 19
+#define SERVO_PIN    3
+#define SERVO_OFFSET 90
 
 // Configure library with pins as remapped for single-channel operation
 // this lets the single motor be controlled as if it were "motor 1"
 DualVNH5019MotorShield md(2, 7, 9, 6, A0, 2, 7, 9, 12, A1);
 
+// Setup the servo for steering
+Servo steering;
+
 ros::NodeHandle nh;
 
-geometry_msgs::Twist resp;
-ros::Publisher cmd_vel_resp("auto_rover/cmd_vel_resp", &resp);
-
 // Wheel Encoder Setup
-volatile uint32_t front_cnt_;
-volatile uint32_t rear_cnt_;
-auto_rover_speed_controller::Encoders encoder_cnts;
-ros::Publisher encoder_cnts_pub("auto_rover/encoders", &encoder_cnts);
-void _front_ticks()
-{
-  front_cnt_++;
-}
+volatile bool fired_;
+volatile bool up_;
+auto_rover_speed_controller::Encoders encoder_;
+ros::Publisher encoder_pub_("auto_rover/encoders", &encoder_);
 
-void _rear_ticks()
+void isr()
 {
-  rear_cnt_++;
+  if (digitalRead(ENCODER_CH_A))
+    up_ = digitalRead(ENCODER_CH_B);
+  else
+    up_ = !digitalRead(ENCODER_CH_B);
+
+  fired_ = true;
 }
 
 // ROS Subscriber to read joystick command
 void joystickCb(const geometry_msgs::Twist& vel)
 {
-    // The the linear portion for the motor speed
+  // The the linear portion for the motor speed
   md.setM1Speed(static_cast<int16_t>(vel.linear.x));
-
-  resp.linear.x = vel.linear.x;
-  resp.angular.z = vel.angular.z;
+  steering.write(static_cast<int16_t>(vel.angular.z) + SERVO_OFFSET);
 }
 ros::Subscriber<geometry_msgs::Twist> sub("auto_rover/cmd_vel", &joystickCb);
 
@@ -50,13 +50,13 @@ void setup()
   // Setup the LED for diagnostics
   pinMode(LED_BUILTIN, OUTPUT);
 
+  // Setup the servo
+  steering.attach(SERVO_PIN);
+
   // Clear both motor encoders
-  front_cnt_ = 0;
-  rear_cnt_ = 0;
-  pinMode(INT_PIN_FRONT, INPUT_PULLUP);
-  attachInterrupt(digitalPinToInterrupt(INT_PIN_FRONT), _front_ticks, RISING);
-  pinMode(INT_PIN_REAR, INPUT_PULLUP);
-  attachInterrupt(digitalPinToInterrupt(INT_PIN_REAR), _rear_ticks, RISING);
+  pinMode(ENCODER_CH_A, INPUT_PULLUP);
+  pinMode(ENCODER_CH_B, INPUT_PULLUP);
+  attachInterrupt(digitalPinToInterrupt(ENCODER_CH_A), isr, CHANGE);
 
   // Setup Motor Controller
   md.init();
@@ -64,12 +64,14 @@ void setup()
   // Setup ROS
   nh.initNode();
   nh.subscribe(sub);
-  nh.advertise(cmd_vel_resp);
-  nh.advertise(encoder_cnts_pub);
+  nh.advertise(encoder_pub_);
 }
 
 void loop()
 {
+  nh.spinOnce();
+  delay(0.01);
+
   if (!nh.connected())
   {
     digitalWrite(LED_BUILTIN, HIGH);
@@ -77,13 +79,15 @@ void loop()
     digitalWrite(LED_BUILTIN, LOW);
     delay(500);
   }
-  else
+  else if (fired_)
   {
-    encoder_cnts.front_cnt_ = front_cnt_;
-    encoder_cnts.rear_cnt_ = rear_cnt_;
-    encoder_cnts_pub.publish( &encoder_cnts );
-  }
+    if (up_)
+      encoder_.wheel_ticks++;
+    else
+      encoder_.wheel_ticks--;
 
-  nh.spinOnce();
-  delay(0.01);
+    encoder_pub_.publish( &encoder_ );
+
+    fired_ = false;
+  }
 }

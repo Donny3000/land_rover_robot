@@ -1,9 +1,18 @@
 <launch>
 
+  <arg name="joy" default="/dev/input/js0" />
+  <arg name="axis_linear" default="1" />
+  <arg name="axis_angular" default="2" />
+  <arg name="scale_linear" default="400" />
+  <arg name="scale_angular" default="180" />
+  <arg name="deadband" default="0.05" />
+  <arg name="autorepeat_rate" default="10" />
+
  <!-- PS3 joy node -->
   <node pkg="joy" type="joy_node" name="ps3_joy" output="screen" >
-    <param name="dev" type="string" value="/dev/input/js1" />
-    <param name="deadzone" value="0.12" />
+    <param name="dev" type="string" value="$(arg joy)" />
+    <param name="deadzone" value="$(arg deadband)" />
+    <param name="autorepeat_rate" value="$(arg autorepeat_rate)" />
   </node>
 
   <node pkg="diagnostic_aggregator" type="aggregator_node" name="diagnostic_aggregator" >
@@ -12,10 +21,10 @@
   </node>
 
   <node pkg="auto_rover_teleop" type="auto_rover_teleop_ps3joy_node" name="auto_rover_teleop_ps3joy" output="screen" >
-    <param name="axis_linear" value="1" type="int"/>
-    <param name="axis_angular" value="2" type="int"/>
-    <param name="scale_linear" value="400" type="double"/>
-    <param name="scale_angular" value="180" type="double"/>
+    <param name="axis_linear" value="$(arg axis_linear)" type="int"/>
+    <param name="axis_angular" value="$(arg axis_angular)" type="int"/>
+    <param name="scale_linear" value="$(arg scale_linear)" type="double"/>
+    <param name="scale_angular" value="$(arg scale_angular)" type="double"/>
   </node>
 
 </launch>

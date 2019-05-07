@@ -122,7 +122,7 @@ include_directories(
 ## Declare a C++ library
 add_library(${PROJECT_NAME}
   src/auto_rover_dfrobot_gravity_10dof.cpp
-)
+  src/I2C.cpp)
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries

@@ -4,6 +4,12 @@
 #include <chrono>
 #include <linux/i2c-dev.h>
 #include <i2c/smbus.h>
+#include <sys/ioctl.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+
+#include <ros/console.h>
 
 #include <auto_rover_dfrobot_gravity_10dof/auto_rover_dfrobot_gravity_10dof.h>
 
@@ -16,12 +22,12 @@ AutoRoverDFRobotGravity10DoF::~AutoRoverDFRobotGravity10DoF()
     close( fd_ );
 }
 
-AutoRoverDFRobotGravity10DoF::SetConfiguration(DFRobotGravity10DoFConfig& config)
+void AutoRoverDFRobotGravity10DoF::SetConfiguration(DFRobotGravity10DoFConfig& config)
 {
     config_ = config;
 }
 
-int AutoRoverDFRobotGravity10DoF::Connect(const uint8_t addr)
+int AutoRoverDFRobotGravity10DoF::Connect(const uint16_t addr)
 {
     char buf[BUFFSIZE];
     uint8_t self_test;
@@ -37,7 +43,7 @@ int AutoRoverDFRobotGravity10DoF::Connect(const uint8_t addr)
 
         return errno;
     }
-    else if (ioctl(buf, I2C_SLAVE, addr) < 0)
+    else if (ioctl(fd_, I2C_SLAVE, addr) < 0)
     {
         memset(buf, 0, BUFFSIZE);
         snprintf(buf, BUFFSIZE-1, " [ERROR %d] Failed to connect to device 0x%X on I2C bus /dev/i2c-%d", errno, addr, bus_);
@@ -46,6 +52,8 @@ int AutoRoverDFRobotGravity10DoF::Connect(const uint8_t addr)
 
         return errno;
     }
+
+    ROS_INFO("Connecto to BNO055");
 
     ROS_INFO("Checking self-test results");
     self_test = static_cast<uint8_t>(i2c_smbus_read_byte_data(fd_, BNO055_ST_RESULT));
@@ -98,6 +106,8 @@ int AutoRoverDFRobotGravity10DoF::InitBNO055()
         ROS_ERROR("Not connected to Gravity 10DoF. Aborting BNO055 initialization.");
         return fd_;
     }
+
+    ROS_INFO("Initializing BNO055");
 
     // Select BNO055 config mode
     if ((ret = i2c_smbus_write_byte_data(fd_, BNO055_OPR_MODE, CONFIGMODE)) < 0)
@@ -179,6 +189,8 @@ int AutoRoverDFRobotGravity10DoF::InitBNO055()
     }
     std::this_thread::sleep_for(std::chrono::milliseconds(25));
 
+    ROS_INFO("BNO055 initialization complet!");
+
     return 0;
 }
 
@@ -193,6 +205,8 @@ int AutoRoverDFRobotGravity10DoF::InitBMP280()
         return fd_;
     }
 
+    ROS_INFO("Initializing BMP280 altimeter and pressure sensor");
+
     // Reset before initialization
     if ((ret = i2c_smbus_write_byte_data(fd_, BMP280_RESET, 0xB6)) < 0)
     {
@@ -201,7 +215,7 @@ int AutoRoverDFRobotGravity10DoF::InitBMP280()
     }
 
     // Set T and P oversampling rates and sensor mode
-    data = config.t_osr << 5 | config.p_osr << 2 | config.mode;
+    data = config_.t_osr << 5 | config_.p_osr << 2 | config_.mode;
     if ((ret = i2c_smbus_write_byte_data(fd_, BMP280_CTRL_MEAS, data)) < 0)
     {
         ROS_ERROR("Failed to set BMP280 oversampling rates and sensor mode");
@@ -209,7 +223,7 @@ int AutoRoverDFRobotGravity10DoF::InitBMP280()
     }
 
     // Set standby time interval in normal mode and bandwidth
-    data = config.sby << 5 | config.iir_filter << 2;
+    data = config_.sby << 5 | config_.iir_filter << 2;
     if ((ret = i2c_smbus_write_byte_data(fd_, BMP280_CONFIG, data)) < 0)
     {
         ROS_ERROR("Failed to set BMP280 standby time interval for normal mode and bandwidth");
@@ -236,10 +250,42 @@ int AutoRoverDFRobotGravity10DoF::InitBMP280()
     bmp_comp_params_.dig_p8 = ( int16_t)((( int16_t) bmp_calib_[21] << 8) | bmp_calib_[20]);
     bmp_comp_params_.dig_p9 = ( int16_t)((( int16_t) bmp_calib_[23] << 8) | bmp_calib_[22]);
 
+    ROS_INFO("BMP280 initialization complete!");
+
     return 0;
 }
 
 void AutoRoverDFRobotGravity10DoF::AccelGyroCalBNO055()
 {
+    uint8_t data[6]; // Temp array for accelerometer & gyro x, y, z data
+
+    ROS_INFO("Accel/Gyro Calibration: Put device on a level surface and keep motionless! Wait...");
+    std::this_thread::sleep_for(std::chrono::milliseconds(4000));
+
+    if ((ret = i2c_smbus_write_byte_data(BNO055_PAGE_ID, 0x00)) < 0)
+    {
+        ROS_ERROR("Failed to select page 0 to read sensors");
+        return;
+    }
+
+    if ((ret = i2c_smbus_write_byte_data(BNO055_OPR_MODE, config_.mode)) < 0)
+    {
+        ROS_ERROR("Failed to set BNO055 into config mode");
+        return;
+    }
+    std::this_thread::sleep_for(std::chrono::milliseconds(25));
+
+
+    if ((ret = i2c_smbus_write_byte_data(BNO055_OPR_MODE, AMG)) < 0)
+    {
+        ROS_ERROR("Failed to set BNO055 operation mode to Accelerometer, Magnetometer, Gyroscope");
+        return;
+    }
+
+    if ((ret = i2c_smbus_write_byte_data(BNO055_ACC_CONFIG, AMG)) < 0)
+    {
+        ROS_ERROR("Failed to set BNO055 operation mode to Accelerometer, Magnetometer, Gyroscope");
+        return;
+    }
 }
 

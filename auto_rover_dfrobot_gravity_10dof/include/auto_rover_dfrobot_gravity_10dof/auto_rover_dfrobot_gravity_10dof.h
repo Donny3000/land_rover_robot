@@ -314,14 +314,14 @@ namespace auto_rover_dfrobot_gravity_10dof
         // t_fine carries fine temperature as global value for BMP280
         int32_t t_fine;
         
-        uint8_t g_pwrMode = NormalG;    // Gyro power mode
+        uint8_t g_pwr_mode = NormalG;    // Gyro power mode
         uint8_t g_scale = GFS_250DPS;   // Gyro full scale
         //uint8_t Godr = GODR_250Hz;    // Gyro sample rate
         uint8_t g_bw = GBW_23Hz;        // Gyro bandwidth
         
         uint8_t a_scale = AFS_2G;       // Accel full scale
         //uint8_t Aodr = AODR_250Hz;    // Accel sample rate
-        uint8_t a_pwrMode = NormalA;    // Accel power mode
+        uint8_t a_pwr_mode = NormalA;    // Accel power mode
         uint8_t a_bw = ABW_31_25Hz;     // Accel bandwidth, accel sample rate divided by ABW_divx
         
         //uint8_t Mscale = MFS_4Gauss;  // Select magnetometer full-scale resolution
@@ -378,6 +378,6 @@ namespace auto_rover_dfrobot_gravity_10dof
             double gyro_bias_[BIAS_PARAM_SIZE];
             double mag_bias_[BIAS_PARAM_SIZE];
             DFRobotGravity10DoFConfig config_;
-            BMP280CompenstationParams bmp_comp_params_;
+            BMP280CompensationParams bmp_comp_params_;
     };
 }

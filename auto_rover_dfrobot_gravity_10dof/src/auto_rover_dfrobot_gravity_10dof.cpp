@@ -27,16 +27,14 @@
 #include <ros/console.h>
 #include <auto_rover_dfrobot_gravity_10dof/auto_rover_dfrobot_gravity_10dof.h>
 
-#define BUFFSIZE 120
-
 using namespace auto_rover_dfrobot_gravity_10dof;
 
 AutoRoverDFRobotGravity10DoF::AutoRoverDFRobotGravity10DoF(const uint8_t &bus, const uint8_t &device) :
-		i2c_(bus, device),
-		bmp_calib_(BMP280_CALIB_SIZE, 0x00),
-		accel_bias_(BIAS_PARAM_SIZE, 0.0),
-		gyro_bias_(BIAS_PARAM_SIZE, 0.0),
-		mag_bias_(BIAS_PARAM_SIZE, 0.0)
+	i2c_(bus, device),
+	bmp_calib_(BMP280_CALIB_SIZE, 0x00),
+	accel_bias_(BIAS_PARAM_SIZE, 0.0),
+	gyro_bias_(BIAS_PARAM_SIZE, 0.0),
+	mag_bias_(BIAS_PARAM_SIZE, 0.0)
 {
 }
 
@@ -604,4 +602,159 @@ int32_t AutoRoverDFRobotGravity10DoF::ReadBMP280Pressure()
 	}
 	return static_cast<int32_t>(((static_cast<int32_t>(rawData[0]) << 16 | static_cast<int32_t>(rawData[1]) << 8 |
 	                              static_cast<int32_t>(rawData[2])) >> 4));
+}
+
+void AutoRoverDFRobotGravity10DoF::ReadAccelData(vector<int16_t>& destination)
+{
+	vector<uint8_t> rawData(6, 0);  // x/y/z accel register data stored here
+
+	destination.clear();
+	destination.resize(3, 0);
+
+	// Read the six raw data registers into data array
+	if ( !i2c_.ReadBytes(BNO055_ACC_DATA_X_LSB, rawData, rawData.size()) )
+	{
+		ROS_ERROR("Failed to read accelerometer x/y/z");
+		return;
+	}
+
+	// Turn the MSB and LSB into a signed 16-bit value
+	destination[0] = (static_cast<int16_t>(rawData[1]) << 8) | rawData[0];
+	destination[1] = (static_cast<int16_t>(rawData[3]) << 8) | rawData[2];
+	destination[2] = (static_cast<int16_t>(rawData[5]) << 8) | rawData[4];
+}
+
+
+void AutoRoverDFRobotGravity10DoF::ReadGyroData(vector<int16_t>& destination)
+{
+	vector<uint8_t> rawData(6, 0);  // x/y/z gyro register data stored here
+
+	destination.clear();
+	destination.resize(3, 0);
+
+	// Read the six raw data registers into data array
+	if ( !i2c_.ReadBytes(BNO055_GYR_DATA_X_LSB, rawData, rawData.size()) )
+	{
+		ROS_ERROR("Failed to read gyroscope x/y/z");
+		return;
+	}
+
+	// Turn the MSB and LSB into a signed 16-bit value
+	destination[0] = (static_cast<int16_t>(rawData[1]) << 8) | rawData[0];
+	destination[1] = (static_cast<int16_t>(rawData[3]) << 8) | rawData[2];
+	destination[2] = (static_cast<int16_t>(rawData[5]) << 8) | rawData[4];
+}
+
+int8_t AutoRoverDFRobotGravity10DoF::ReadGyroTempData()
+{
+	uint8_t data;
+
+	if ( !i2c_.ReadByte(BNO055_TEMP, data) )
+	{
+		ROS_ERROR("Failed to read raw temperature data");
+		return INFINITY;
+	}
+
+	return data;  // Read the two raw data registers sequentially into data array
+}
+
+void AutoRoverDFRobotGravity10DoF::ReadMagData(vector<int16_t>& destination)
+{
+	vector<uint8_t> rawData(6, 0);  // x/y/z mag register data stored here
+
+	destination.clear();
+	destination.resize(3, 0);
+
+	// Read the six raw data registers into data array
+	if ( !i2c_.ReadBytes(BNO055_MAG_DATA_X_LSB, rawData, rawData.size()) )
+	{
+		ROS_ERROR("Failed to read magnetometer x/y/z");
+		return;
+	}
+
+	// Turn the MSB and LSB into a signed 16-bit value
+	destination[0] = (static_cast<int16_t>(rawData[1]) << 8) | rawData[0];
+	destination[1] = (static_cast<int16_t>(rawData[3]) << 8) | rawData[2];
+	destination[2] = (static_cast<int16_t>(rawData[5]) << 8) | rawData[4];
+}
+
+void AutoRoverDFRobotGravity10DoF::ReadQuatData(vector<int16_t>& destination)
+{
+	vector<uint8_t> rawData(8, 0);  // w/x/y/z quaternion register data stored here
+
+	destination.clear();
+	destination.resize(4, 0);
+
+	// Read the six raw data registers into data array
+	if ( !i2c_.ReadBytes(BNO055_QUA_DATA_W_LSB, rawData, rawData.size()) )
+	{
+		ROS_ERROR("Failed to read quaternion data");
+		return;
+	}
+
+	// Turn the MSB and LSB into a signed 16-bit value
+	destination[0] = (static_cast<int16_t>(rawData[1]) << 8) | rawData[0];
+	destination[1] = (static_cast<int16_t>(rawData[3]) << 8) | rawData[2];
+	destination[2] = (static_cast<int16_t>(rawData[5]) << 8) | rawData[4];
+	destination[3] = (static_cast<int16_t>(rawData[7]) << 8) | rawData[6];
+}
+
+void AutoRoverDFRobotGravity10DoF::ReadEulData(vector<int16_t>& destination)
+{
+	vector<uint8_t> rawData(6, 0);  // x/y/z euler register data stored here
+
+	destination.clear();
+	destination.resize(3, 0);
+
+	// Read the six raw data registers into data array
+	if ( !i2c_.ReadBytes(BNO055_EUL_HEADING_LSB, rawData, rawData.size()) )
+	{
+		ROS_ERROR("Failed to read euler heading/pitch/yaw");
+		return;
+	}
+
+	// Turn the MSB and LSB into a signed 16-bit value
+	destination[0] = (static_cast<int16_t>(rawData[1]) << 8) | rawData[0];
+	destination[1] = (static_cast<int16_t>(rawData[3]) << 8) | rawData[2];
+	destination[2] = (static_cast<int16_t>(rawData[5]) << 8) | rawData[4];
+}
+
+void AutoRoverDFRobotGravity10DoF::ReadLIAData(vector<int16_t>& destination)
+{
+	vector<uint8_t> rawData(6, 0);  // x/y/z linear accel register data stored here
+
+	destination.clear();
+	destination.resize(3, 0);
+
+	// Read the six raw data registers into data array
+	if ( !i2c_.ReadBytes(BNO055_LIA_DATA_X_LSB, rawData, rawData.size()) )
+	{
+		ROS_ERROR("Failed to read linear acceleration x/y/z");
+		return;
+	}
+
+	// Turn the MSB and LSB into a signed 16-bit value
+	destination[0] = (static_cast<int16_t>(rawData[1]) << 8) | rawData[0];
+	destination[1] = (static_cast<int16_t>(rawData[3]) << 8) | rawData[2];
+	destination[2] = (static_cast<int16_t>(rawData[5]) << 8) | rawData[4];
+}
+
+void AutoRoverDFRobotGravity10DoF::ReadGRVData(vector<int16_t>& destination)
+{
+	vector<uint8_t> rawData(6, 0);  // x/y/z gravity vector register data stored here
+
+	destination.clear();
+	destination.resize(3, 0);
+
+	// Read the six raw data registers into data array
+	if ( !i2c_.ReadBytes(BNO055_GRV_DATA_X_LSB, rawData, rawData.size()) )
+	{
+		ROS_ERROR("Failed to read gravity vector x/y/z");
+		return;
+	}
+
+	// Turn the MSB and LSB into a signed 16-bit value
+	destination[0] = (static_cast<int16_t>(rawData[1]) << 8) | rawData[0];
+	destination[1] = (static_cast<int16_t>(rawData[3]) << 8) | rawData[2];
+	destination[2] = (static_cast<int16_t>(rawData[5]) << 8) | rawData[4];
 }

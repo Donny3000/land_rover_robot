@@ -399,7 +399,6 @@ namespace auto_rover_dfrobot_gravity_10dof
 	{
 	public:
 		explicit AutoRoverDFRobotGravity10DoF(const uint8_t &bus, const uint8_t& device);
-
 		~AutoRoverDFRobotGravity10DoF();
 
 		bool Initialize();
@@ -421,6 +420,22 @@ namespace auto_rover_dfrobot_gravity_10dof
 		uint32_t CompensatePressure(int32_t& adc);
 
 		uint32_t CompensateTemperature(int32_t& adc);
+
+		void ReadAccelData(vector<int16_t>& destination);
+
+		void ReadGyroData(vector<int16_t>& destination);
+
+		int8_t ReadGyroTempData();
+
+		void ReadMagData(vector<int16_t>& destination);
+
+		void ReadQuatData(vector<int16_t>& destination);
+
+		void ReadEulData(vector<int16_t>& destination);
+
+		void ReadLIAData(vector<int16_t>& destination);
+
+		void ReadGRVData(vector<int16_t>& destination);
 
 	private:
 		I2C i2c_;

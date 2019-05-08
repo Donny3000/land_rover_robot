@@ -242,16 +242,18 @@ namespace auto_rover_dfrobot_gravity_10dof
 	enum OPRMode
 	{  // BNO-55 operation modes
 		CONFIGMODE = 0x00,
+
 		// Sensor Mode
-				ACCONLY,
+		ACCONLY,
 		MAGONLY,
 		GYROONLY,
 		ACCMAG,
 		ACCGYRO,
 		MAGGYRO,
 		AMG,            // 0x07
+
 		// Fusion Mode
-				IMU,
+		IMU,
 		COMPASS,
 		M4G,
 		NDOF_FMC_OFF,
@@ -409,6 +411,16 @@ namespace auto_rover_dfrobot_gravity_10dof
 		bool InitBMP280();
 
 		bool AccelGyroCalBNO055();
+
+		bool MagCalBNO055();
+
+		int32_t ReadBMP280Temperature();
+
+		int32_t ReadBMP280Pressure();
+
+		uint32_t CompensatePressure(int32_t& adc);
+
+		uint32_t CompensateTemperature(int32_t& adc);
 
 	private:
 		I2C i2c_;

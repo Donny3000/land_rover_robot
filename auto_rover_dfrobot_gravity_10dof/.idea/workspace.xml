@@ -68,11 +68,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="9e34a1e1-e6da-4cb9-82f6-4a1ee25d9386" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/src/main.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/CMakeLists.txt" beforeDir="false" afterPath="$PROJECT_DIR$/CMakeLists.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/auto_rover_dfrobot_gravity_10dof/auto_rover_dfrobot_gravity_10dof.h" beforeDir="false" afterPath="$PROJECT_DIR$/include/auto_rover_dfrobot_gravity_10dof/auto_rover_dfrobot_gravity_10dof.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/auto_rover_dfrobot_gravity_10dof.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/auto_rover_dfrobot_gravity_10dof.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../auto_rover_speed_controller/arduino/AutoRoverSpeedController/.vscode/ipch/479840d29241c185/main.ipch" beforeDir="false" afterPath="$PROJECT_DIR$/../auto_rover_speed_controller/arduino/AutoRoverSpeedController/.vscode/ipch/479840d29241c185/main.ipch" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../auto_rover_speed_controller/arduino/AutoRoverSpeedController/src/main.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../auto_rover_speed_controller/arduino/AutoRoverSpeedController/src/main.cpp" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/cmake-build-debug/" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -91,7 +88,7 @@
         <entry file="file://$PROJECT_DIR$/include/auto_rover_dfrobot_gravity_10dof/auto_rover_dfrobot_gravity_10dof.h">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="394">
-              <caret line="411" column="34" lean-forward="true" selection-start-line="411" selection-start-column="34" selection-end-line="411" selection-end-column="34" />
+              <caret line="411" column="34" selection-start-line="411" selection-start-column="34" selection-end-line="411" selection-end-column="34" />
               <folding>
                 <element signature="e#1143#1162#0" expanded="true" />
               </folding>
@@ -103,7 +100,7 @@
         <entry file="file://$PROJECT_DIR$/src/auto_rover_dfrobot_gravity_10dof.cpp">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="-330">
-              <caret line="41" column="1" lean-forward="true" selection-start-line="41" selection-start-column="1" selection-end-line="41" selection-end-column="1" />
+              <caret line="41" column="1" selection-start-line="41" selection-start-column="1" selection-end-line="41" selection-end-column="1" />
               <folding>
                 <element signature="e#0#17#0" expanded="true" />
               </folding>
@@ -111,11 +108,11 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/main.cpp">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="349">
-              <caret line="74" column="45" lean-forward="true" selection-start-line="74" selection-start-column="45" selection-end-line="74" selection-end-column="45" />
+            <state relative-caret-position="559">
+              <caret line="73" column="45" selection-start-line="73" selection-start-column="45" selection-end-line="73" selection-end-column="45" />
               <folding>
                 <element signature="e#1143#1163#0" expanded="true" />
               </folding>
@@ -123,7 +120,7 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/I2C.cpp">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="293">
@@ -135,8 +132,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/include/auto_rover_dfrobot_gravity_10dof/I2C.h">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="641">
-              <caret line="58" column="79" selection-start-line="58" selection-start-column="79" selection-end-line="58" selection-end-column="79" />
+            <state relative-caret-position="686">
+              <caret line="61" column="79" selection-start-line="61" selection-start-column="79" selection-end-line="61" selection-end-column="79" />
               <folding>
                 <element signature="e#107#126#0" expanded="true" />
               </folding>
@@ -499,16 +496,15 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1557202952930</updated>
-      <workItem from="1557202954227" duration="16272000" />
+      <workItem from="1557202954227" duration="16879000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="16272000" />
+    <option name="totallyTimeSpent" value="16879000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="-1" y="0" width="1922" height="1053" extended-state="6" />
-    <editor active="true" />
     <layout>
       <window_info id="Favorites" order="0" side_tool="true" />
       <window_info content_ui="combo" id="Project" order="1" visible="true" weight="0.15528281" />
@@ -539,18 +535,11 @@
   <component name="editorHistoryManager">
     <entry file="file://$PROJECT_DIR$/include/auto_rover_dfrobot_gravity_10dof/I2C.h">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="641">
-          <caret line="58" column="79" selection-start-line="58" selection-start-column="79" selection-end-line="58" selection-end-column="79" />
+        <state relative-caret-position="686">
+          <caret line="61" column="79" selection-start-line="61" selection-start-column="79" selection-end-line="61" selection-end-column="79" />
           <folding>
             <element signature="e#107#126#0" expanded="true" />
           </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/I2C.cpp">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="293">
-          <caret line="143" column="10" selection-start-line="143" selection-start-column="10" selection-end-line="143" selection-end-column="10" />
         </state>
       </provider>
     </entry>
@@ -564,7 +553,7 @@
     <entry file="file://$PROJECT_DIR$/include/auto_rover_dfrobot_gravity_10dof/auto_rover_dfrobot_gravity_10dof.h">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="394">
-          <caret line="411" column="34" lean-forward="true" selection-start-line="411" selection-start-column="34" selection-end-line="411" selection-end-column="34" />
+          <caret line="411" column="34" selection-start-line="411" selection-start-column="34" selection-end-line="411" selection-end-column="34" />
           <folding>
             <element signature="e#1143#1162#0" expanded="true" />
           </folding>
@@ -574,7 +563,7 @@
     <entry file="file://$PROJECT_DIR$/src/auto_rover_dfrobot_gravity_10dof.cpp">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="-330">
-          <caret line="41" column="1" lean-forward="true" selection-start-line="41" selection-start-column="1" selection-end-line="41" selection-end-column="1" />
+          <caret line="41" column="1" selection-start-line="41" selection-start-column="1" selection-end-line="41" selection-end-column="1" />
           <folding>
             <element signature="e#0#17#0" expanded="true" />
           </folding>
@@ -583,11 +572,18 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main.cpp">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="349">
-          <caret line="74" column="45" lean-forward="true" selection-start-line="74" selection-start-column="45" selection-end-line="74" selection-end-column="45" />
+        <state relative-caret-position="559">
+          <caret line="73" column="45" selection-start-line="73" selection-start-column="45" selection-end-line="73" selection-end-column="45" />
           <folding>
             <element signature="e#1143#1163#0" expanded="true" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/I2C.cpp">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="293">
+          <caret line="143" column="10" selection-start-line="143" selection-start-column="10" selection-end-line="143" selection-end-column="10" />
         </state>
       </provider>
     </entry>

@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<launch>
+  <node name="auto_rover_dfrobot_gravity_10dof_node" pkg="auto_rover_dfrobot_gravity_10dof" type="auto_rover_dfrobot_gravity_10dof_node" output="screen"/>
+</launch>

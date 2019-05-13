@@ -34,17 +34,17 @@ I2C::I2C(const uint8_t &bus, const uint8_t& addr, bool is_ten_bit) :
 	string base("/dev/i2c-");
 	base += to_string(bus);
 
-	f_.open(base);
-	if ( !f_.is_open() )
+	f_ = open(base.c_str(), O_RDWR);
+	if (f_ == -1)
 	{
 		ROS_ERROR_STREAM("Failed to open I2C bus " + base);
 		is_initialized_ = false;
 	}
 	else
 	{
-		if ((retval = ioctl(f_.get(), I2C_SLAVE, addr)) < 0)
+		if ((retval = ioctl(f_, I2C_SLAVE, addr)) < 0)
 		{
-			ROS_ERROR_STREAM("Failed to select device 0x" << addr << " on i2c bus " << dec << bus);
+			ROS_ERROR_STREAM("Failed to select device 0x" << hex << addr << " on i2c bus " << base);
 			is_initialized_ = false;
 		}
 		else
@@ -57,8 +57,8 @@ I2C::I2C(const uint8_t &bus, const uint8_t& addr, bool is_ten_bit) :
 
 I2C::~I2C()
 {
-	if ( f_.is_open() )
-		f_.close();
+	if (f_ > 0)
+        close(f_);
 }
 
 bool I2C::WriteByte(const uint8_t& data)
@@ -71,7 +71,7 @@ bool I2C::WriteByte(const uint8_t& data)
 		return false;
 	}
 
-	if ((retval = i2c_smbus_write_byte(f_.get(), data)) < 0)
+	if ((retval = i2c_smbus_write_byte(f_, data)) < 0)
 	{
 		ROS_ERROR("Failed to write byte data to device");
 		return false;
@@ -90,7 +90,7 @@ bool I2C::WriteByte(const uint16_t& addr, const uint8_t& data)
 		return false;
 	}
 
-	if ((retval = i2c_smbus_write_byte_data(f_.get(), addr, data)) < 0)
+	if ((retval = i2c_smbus_write_byte_data(f_, addr, data)) < 0)
 	{
 		ROS_ERROR_STREAM("Failed to write byte data 0x" << hex << data << " to device at address 0x" << addr);
 		return false;
@@ -109,7 +109,7 @@ bool I2C::WriteBytes(const uint16_t& addr, const vector<uint8_t>& data)
 		return false;
 	}
 
-	if ((retval = i2c_smbus_write_block_data(f_.get(), addr, data.size(), data.data())) < 0)
+	if ((retval = i2c_smbus_write_block_data(f_, addr, data.size(), data.data())) < 0)
 	{
 		ROS_ERROR_STREAM("Failed to write bytes to device at address 0x" << hex << addr);
 		return false;
@@ -128,7 +128,7 @@ bool I2C::ReadByte(uint8_t& data)
 		return false;
 	}
 
-	if ((retval = i2c_smbus_read_byte(f_.get())) < 0)
+	if ((retval = i2c_smbus_read_byte(f_)) < 0)
 	{
 		ROS_ERROR_STREAM("Failed to read byte data from device");
 		return false;
@@ -151,7 +151,7 @@ bool I2C::ReadByte(const uint16_t& addr, uint8_t& data)
 		return false;
 	}
 
-	if ((retval = i2c_smbus_read_byte_data(f_.get(), addr)) < 0)
+	if ((retval = i2c_smbus_read_byte_data(f_, addr)) < 0)
 	{
 		ROS_ERROR_STREAM("Failed to read byte data from device at address 0x" << addr);
 		return false;
@@ -164,7 +164,6 @@ bool I2C::ReadByte(const uint16_t& addr, uint8_t& data)
 	return true;
 }
 
-#ifdef I2C_FUNC_SMBUS_READ_BLOCK_DATA
 bool I2C::ReadBytes(const uint16_t& addr, vector<uint8_t>& data, uint8_t len)
 {
 	bool retval;
@@ -179,11 +178,10 @@ bool I2C::ReadBytes(const uint16_t& addr, vector<uint8_t>& data, uint8_t len)
 	data.resize(len, 0x00);
 	for (int i = 0; i < len; i++)
 	{
-		retval = ReadByte(addr, data.at(i));
+		retval = ReadByte(addr + i, data.at(i));
 		if( !retval )
 			ROS_WARN("Error occurred reading data from device.");
 	}
 
 	return true;
 }
-#endif

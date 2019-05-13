@@ -47,57 +47,44 @@ void AutoRoverDFRobotGravity10DoF::SetConfiguration(DFRobotGravity10DoFConfig &c
 	config_ = config;
 }
 
-bool AutoRoverDFRobotGravity10DoF::Initialize()
+void AutoRoverDFRobotGravity10DoF::Initialize()
 {
 	uint8_t self_test;
-	bool retval = false;
 
 	ROS_INFO("Checking self-test results");
 
 	if (i2c_.ReadByte(BNO055_ST_RESULT, self_test)) {
 		if (self_test & 0x01) {
 			ROS_INFO("Accelerometer passed self-test");
-			retval = true;
 		}
 		else {
-			ROS_ERROR("Accelerometer failed self-test");
-			retval = false;
+			ROS_WARN("Accelerometer failed self-test");
 		}
 
 		if (self_test & 0x02) {
 			ROS_INFO("Magnetometer passed self-test");
-			retval = true;
 		}
 		else {
-			ROS_ERROR("Magnetometer failed self-test");
-			retval = false;
+			ROS_WARN("Magnetometer failed self-test");
 		}
 
 		if (self_test & 0x04) {
 			ROS_INFO("Gyroscope passed self-test");
-			retval = true;
 		}
 		else {
-			ROS_ERROR("Gyroscope failed self-test");
-			retval = false;
+			ROS_WARN("Gyroscope failed self-test");
 		}
 
 		if (self_test & 0x08) {
 			ROS_INFO("MCU passed self-test");
-			retval = true;
 		}
 		else {
-			ROS_ERROR("MCU failed self-test");
-			retval = false;
+			ROS_WARN("MCU failed self-test");
 		}
 	}
 	else {
-		ROS_ERROR("Failed to execute device self-test");
-		retval = false;
+		ROS_WARN("Failed to read device self-test results");
 	}
-
-
-	return retval;
 }
 
 bool AutoRoverDFRobotGravity10DoF::InitBNO055()
@@ -180,9 +167,9 @@ bool AutoRoverDFRobotGravity10DoF::InitBNO055()
 	}
 	std::this_thread::sleep_for(std::chrono::milliseconds(25));
 
-	ROS_INFO("BNO055 initialization complet!");
+	ROS_INFO("BNO055 initialization complete!");
 
-	return 0;
+	return true;
 }
 
 bool AutoRoverDFRobotGravity10DoF::InitBMP280()
@@ -217,27 +204,27 @@ bool AutoRoverDFRobotGravity10DoF::InitBMP280()
 	}
 
 	// Read and store calibration data
-	if (i2c_.ReadBytes(BMP280_CALIB00, bmp_calib_, BMP280_CALIB_SIZE)) {
+	if (!i2c_.ReadBytes(BMP280_CALIB00, bmp_calib_, BMP280_CALIB_SIZE)) {
 		ROS_ERROR("Failed to calibrate the BMP280");
 		return false;
 	}
 
-	bmp_comp_params_.dig_t1 = (uint16_t) (((uint16_t) bmp_calib_[1] << 8) | bmp_calib_[0]);
-	bmp_comp_params_.dig_t2 = (int16_t) (((int16_t) bmp_calib_[3] << 8) | bmp_calib_[2]);
-	bmp_comp_params_.dig_t3 = (int16_t) (((int16_t) bmp_calib_[5] << 8) | bmp_calib_[4]);
-	bmp_comp_params_.dig_p1 = (uint16_t) (((uint16_t) bmp_calib_[7] << 8) | bmp_calib_[6]);
-	bmp_comp_params_.dig_p2 = (int16_t) (((int16_t) bmp_calib_[9] << 8) | bmp_calib_[8]);
-	bmp_comp_params_.dig_p3 = (int16_t) (((int16_t) bmp_calib_[11] << 8) | bmp_calib_[10]);
-	bmp_comp_params_.dig_p4 = (int16_t) (((int16_t) bmp_calib_[13] << 8) | bmp_calib_[12]);
-	bmp_comp_params_.dig_p5 = (int16_t) (((int16_t) bmp_calib_[15] << 8) | bmp_calib_[14]);
-	bmp_comp_params_.dig_p6 = (int16_t) (((int16_t) bmp_calib_[17] << 8) | bmp_calib_[16]);
-	bmp_comp_params_.dig_p7 = (int16_t) (((int16_t) bmp_calib_[19] << 8) | bmp_calib_[18]);
-	bmp_comp_params_.dig_p8 = (int16_t) (((int16_t) bmp_calib_[21] << 8) | bmp_calib_[20]);
-	bmp_comp_params_.dig_p9 = (int16_t) (((int16_t) bmp_calib_[23] << 8) | bmp_calib_[22]);
+	bmp_comp_params_.dig_t1 = static_cast<uint16_t>((static_cast<uint16_t>(bmp_calib_[1]) << 8) | bmp_calib_[0]);
+	bmp_comp_params_.dig_t2 = static_cast<int16_t>((static_cast<int16_t>(bmp_calib_[3]) << 8) | bmp_calib_[2]);
+	bmp_comp_params_.dig_t3 = static_cast<int16_t>((static_cast<int16_t>(bmp_calib_[5]) << 8) | bmp_calib_[4]);
+	bmp_comp_params_.dig_p1 = static_cast<uint16_t>((static_cast<uint16_t>(bmp_calib_[7]) << 8) | bmp_calib_[6]);
+	bmp_comp_params_.dig_p2 = static_cast<int16_t>((static_cast<int16_t>(bmp_calib_[9]) << 8) | bmp_calib_[8]);
+	bmp_comp_params_.dig_p3 = static_cast<int16_t>((static_cast<int16_t>(bmp_calib_[11]) << 8) | bmp_calib_[10]);
+	bmp_comp_params_.dig_p4 = static_cast<int16_t>((static_cast<int16_t>(bmp_calib_[13]) << 8) | bmp_calib_[12]);
+	bmp_comp_params_.dig_p5 = static_cast<int16_t>((static_cast<int16_t>(bmp_calib_[15]) << 8) | bmp_calib_[14]);
+	bmp_comp_params_.dig_p6 = static_cast<int16_t>((static_cast<int16_t>(bmp_calib_[17]) << 8) | bmp_calib_[16]);
+	bmp_comp_params_.dig_p7 = static_cast<int16_t>((static_cast<int16_t>(bmp_calib_[19]) << 8) | bmp_calib_[18]);
+	bmp_comp_params_.dig_p8 = static_cast<int16_t>((static_cast<int16_t>(bmp_calib_[21]) << 8) | bmp_calib_[20]);
+	bmp_comp_params_.dig_p9 = static_cast<int16_t>((static_cast<int16_t>(bmp_calib_[23]) << 8) | bmp_calib_[22]);
 
 	ROS_INFO("BMP280 initialization complete!");
 
-	return 0;
+	return true;
 }
 
 bool AutoRoverDFRobotGravity10DoF::AccelGyroCalBNO055()
@@ -470,9 +457,9 @@ bool AutoRoverDFRobotGravity10DoF::MagCalBNO055()
 			continue;
 		}
 
-		mag_temp[0] = (int16_t) (((int16_t) data[1] << 8) | data[0]);   // Form signed 16-bit integer for each sample in FIFO
-		mag_temp[1] = (int16_t) (((int16_t) data[3] << 8) | data[2]);
-		mag_temp[2] = (int16_t) (((int16_t) data[5] << 8) | data[4]);
+		mag_temp[0] = static_cast<int16_t>((static_cast<int16_t>(data[1]) << 8) | data[0]);   // Form signed 16-bit integer for each sample in FIFO
+		mag_temp[1] = static_cast<int16_t>((static_cast<int16_t>(data[3]) << 8) | data[2]);
+		mag_temp[2] = static_cast<int16_t>((static_cast<int16_t>(data[5]) << 8) | data[4]);
 
 		for (int jj = 0; jj < 3; jj++)
 		{

@@ -30,11 +30,14 @@
 #include <string>
 #include <vector>
 #include <stdint.h>
+extern "C" {
+#include <i2c/smbus.h>
 #include <linux/i2c-dev.h>
 #include <sys/ioctl.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+}
 #include <ros/ros.h>
 #include <ros/console.h>
 
@@ -59,7 +62,7 @@ namespace auto_rover_dfrobot_gravity_10dof
 		bool ReadBytes(const uint16_t& addr, vector<uint8_t>& data, uint8_t len);
 
 	private:
-		fstream f_;
+		int f_;
 		bool is_ten_bit_;
 		bool is_initialized_;
 	};

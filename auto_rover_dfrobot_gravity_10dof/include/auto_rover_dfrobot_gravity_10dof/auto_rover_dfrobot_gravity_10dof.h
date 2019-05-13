@@ -401,7 +401,7 @@ namespace auto_rover_dfrobot_gravity_10dof
 		explicit AutoRoverDFRobotGravity10DoF(const uint8_t &bus, const uint8_t& device);
 		~AutoRoverDFRobotGravity10DoF();
 
-		bool Initialize();
+		void Initialize();
 
 		void SetConfiguration(DFRobotGravity10DoFConfig &config);
 

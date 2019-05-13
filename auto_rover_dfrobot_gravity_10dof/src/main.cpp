@@ -36,20 +36,19 @@ int main(int argc, char** argv)
 	ros::Publisher imu_pub = nh.advertise<sensor_msgs::Imu>("Imu", 10);
 
 	// Setup the IMU
-	auto_rover_dfrobot_gravity_10dof::AutoRoverDFRobotGravity10DoF imu(1, 0x27);
+	auto_rover_dfrobot_gravity_10dof::AutoRoverDFRobotGravity10DoF imu(1, 0x28);
 
-	if ( !imu.Initialize() )
-	{
-		return -1;
-	}
+	imu.Initialize();
 
 	if ( !imu.InitBNO055() )
 	{
+        ROS_ERROR("Failed to initialize BNO055!");
 		return -1;
 	}
 
 	if ( !imu.InitBMP280() )
 	{
+        ROS_ERROR("Failed to initialize BMP280!");
 		return -1;
 	}
 
@@ -59,7 +58,7 @@ int main(int argc, char** argv)
 	sensor_msgs::Imu msg;
 	msg.header.frame_id = "imu";
 
-	ros::Rate loop_rate(100);
+	//ros::Rate loop_rate(100);
 	while ( ros::ok() )
 	{
 		imu.ReadLIAData(accel);
@@ -82,7 +81,7 @@ int main(int argc, char** argv)
 		imu_pub.publish( msg );
 		ros::spinOnce();
 
-		loop_rate.sleep();
+		//loop_rate.sleep();
 	}
 
 	return 0;

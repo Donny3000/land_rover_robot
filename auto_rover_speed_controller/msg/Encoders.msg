@@ -1,5 +1,4 @@
-uint32 millis_
-uint16 rear_left_
-uint16 rear_right_
-uint16 front_left_
-uint16 front_right_
+float32 rear_left_speed_
+float32 rear_right_speed_
+float32 front_left_speed_
+float32 front_right_speed_

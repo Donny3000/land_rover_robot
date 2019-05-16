@@ -8,13 +8,13 @@
 #include <auto_rover_speed_controller/Encoders.h>
 
 #define SPEED_MAX          400
-#define REAR_LEFT_ENCODER  19
-#define REAR_RIGHT_ENCODER 18
+#define REAR_LEFT_ENCODER  18
+#define REAR_RIGHT_ENCODER 19
 #define FRONT_WHEEL_SERVO  3
 #define REAR_WHEEL_SERVO   11
 #define SERVO_OFFSET       90
 
-unsigned long start_time_;
+unsigned long start_time_, stop_time_;
 
 // Configure library with pins as remapped for single-channel operation
 // this lets the single motor be controlled as if it were "motor 1"
@@ -88,12 +88,12 @@ void loop()
     // Safeguard calculations and publishing of the message
     detachEncoders();
 
-    encoder_.millis_ = millis() - start_time_;
-    encoder_.rear_left_ = rear_left_ticks_;
-    encoder_.rear_right_ = rear_right_ticks_;
+    stop_time_ = millis() - start_time_;
+    encoder_.rear_left_speed_ = static_cast<float>(rear_left_ticks_) / static_cast<float>(stop_time_);
+    encoder_.rear_right_speed_ = static_cast<float>(rear_right_ticks_) / static_cast<float>(stop_time_);
     rear_left_ticks_ = rear_right_ticks_ = 0;
-
     encoder_pub_.publish( &encoder_ );
+
     attachEncoders();
   }
 

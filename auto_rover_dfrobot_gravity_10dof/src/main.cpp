@@ -46,6 +46,18 @@ int main(int argc, char** argv)
 		return -1;
 	}
 
+	if ( !imu.AccelGyroCalBNO055() )
+	{
+		ROS_ERROR("Failed to calibrate the Accelerometer and Gyroscope");
+		return -1;
+	}
+
+	if ( !imu.MagCalBNO055() )
+	{
+		ROS_ERROR("Failed to calibrate the magnetometer");
+		return -1;
+	}
+
 	if ( !imu.InitBMP280() )
 	{
         ROS_ERROR("Failed to initialize BMP280!");

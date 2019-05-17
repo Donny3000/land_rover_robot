@@ -356,7 +356,7 @@ namespace auto_rover_dfrobot_gravity_10dof
 		// t_fine carries fine temperature as global value for BMP280
 		int32_t t_fine;
 
-		uint8_t g_pwr_mode = NormalG;    // Gyro power mode
+		uint8_t g_pwr_mode = NormalG;   // Gyro power mode
 		uint8_t g_scale = GFS_250DPS;   // Gyro full scale
 		//uint8_t Godr = GODR_250Hz;    // Gyro sample rate
 		uint8_t g_bw = GBW_23Hz;        // Gyro bandwidth

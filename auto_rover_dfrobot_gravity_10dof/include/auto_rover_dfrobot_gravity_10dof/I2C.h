@@ -29,7 +29,7 @@
 #include <fstream>
 #include <string>
 #include <vector>
-#include <stdint.h>
+#include <cstdint>
 extern "C" {
 #include <i2c/smbus.h>
 #include <linux/i2c-dev.h>
@@ -53,13 +53,13 @@ namespace auto_rover_dfrobot_gravity_10dof
 
 		bool IsConnected() { return is_initialized_; }
 
-		bool WriteByte(const uint8_t& data);
-		bool WriteByte(const uint16_t& addr, const uint8_t& data);
-		bool WriteBytes(const uint16_t& addr, const vector<uint8_t>& data);
+		virtual bool WriteByte(const uint8_t& data);
+		virtual bool WriteByte(const uint16_t& addr, const uint8_t& data);
+		virtual bool WriteBytes(const uint16_t& addr, const vector<uint8_t>& data);
 
-		bool ReadByte(uint8_t& data);
-		bool ReadByte(const uint16_t& addr, uint8_t& data);
-		bool ReadBytes(const uint16_t& addr, vector<uint8_t>& data, uint8_t len);
+		virtual bool ReadByte(uint8_t& data);
+		virtual bool ReadByte(const uint16_t& addr, uint8_t& data);
+		virtual bool ReadBytes(const uint16_t& addr, vector<uint8_t>& data, uint8_t len);
 
 	private:
 		int f_;

@@ -30,7 +30,7 @@
 using namespace auto_rover_dfrobot_gravity_10dof;
 
 AutoRoverDFRobotGravity10DoF::AutoRoverDFRobotGravity10DoF(const uint8_t &bus, const uint8_t &device) :
-		i2c_(bus, device),
+		I2C(bus, device),
 		bmp_calib_(BMP280_CALIB_SIZE, 0x00),
 		accel_bias_(BIAS_PARAM_SIZE, 0.0),
 		gyro_bias_(BIAS_PARAM_SIZE, 0.0),
@@ -53,7 +53,7 @@ void AutoRoverDFRobotGravity10DoF::Initialize()
 
 	ROS_INFO("Checking self-test results");
 
-	if (i2c_.ReadByte(BNO055_ST_RESULT, self_test))
+	if ( ReadByte(BNO055_ST_RESULT, self_test) )
 	{
 		if (self_test & 0x01)
 		{
@@ -97,11 +97,29 @@ void AutoRoverDFRobotGravity10DoF::Initialize()
 	}
 }
 
+void AutoRoverDFRobotGravity10DoF::Reset()
+{
+	if ( !IsConnected() )
+	{
+		ROS_ERROR("Not connected to Gravity 10DoF. Skipping reset of device.");
+		return;
+	}
+
+	if ( !WriteByte(BNO055_SYS_TRIGGER, 0x20) )
+	{
+		ROS_ERROR("Failed to reset device");
+	}
+	else
+	{
+		ROS_INFO("Device reset successfully. Re-calibration initialized");
+	}
+}
+
 bool AutoRoverDFRobotGravity10DoF::InitBNO055()
 {
 	uint8_t data;
 
-	if (!i2c_.IsConnected())
+	if ( !IsConnected() )
 	{
 		ROS_ERROR("Not connected to Gravity 10DoF. Aborting BNO055 initialization.");
 		return false;
@@ -110,7 +128,7 @@ bool AutoRoverDFRobotGravity10DoF::InitBNO055()
 	ROS_INFO("Initializing BNO055");
 
 	// Select BNO055 config mode
-	if (!i2c_.WriteByte(BNO055_OPR_MODE, CONFIGMODE))
+	if ( !WriteByte(BNO055_OPR_MODE, CONFIGMODE) )
 	{
 		ROS_ERROR("Failed to set BNO055 config mode.");
 		return false;
@@ -118,7 +136,7 @@ bool AutoRoverDFRobotGravity10DoF::InitBNO055()
 	std::this_thread::sleep_for(std::chrono::milliseconds(25));
 
 	// Select page 1 to configure sensors
-	if (!i2c_.WriteByte(BNO055_PAGE_ID, 0x01))
+	if ( !WriteByte(BNO055_PAGE_ID, 0x01) )
 	{
 		ROS_ERROR("Failed to select page 1 to configure sensors");
 		return false;
@@ -126,7 +144,7 @@ bool AutoRoverDFRobotGravity10DoF::InitBNO055()
 
 	// Configure ACC
 	data = config_.a_pwr_mode << 5 | config_.a_bw << 2 | config_.a_scale;
-	if (!i2c_.WriteByte(BNO055_ACC_CONFIG, data))
+	if ( !WriteByte(BNO055_ACC_CONFIG, data) )
 	{
 		ROS_ERROR("Failed to configure accelerometer");
 		return false;
@@ -134,12 +152,12 @@ bool AutoRoverDFRobotGravity10DoF::InitBNO055()
 
 	// Configure GYR
 	data = config_.g_bw << 3 | config_.g_scale;
-	if (!i2c_.WriteByte(BNO055_GYRO_CONFIG_0, data))
+	if ( !WriteByte(BNO055_GYRO_CONFIG_0, data) )
 	{
 		ROS_ERROR("Failed to configure gyroscope");
 		return false;
 	}
-	if (!i2c_.WriteByte(BNO055_GYRO_CONFIG_1, config_.g_pwr_mode))
+	if ( !WriteByte(BNO055_GYRO_CONFIG_1, config_.g_pwr_mode) )
 	{
 		ROS_ERROR("Failed to configure gyroscope");
 		return false;
@@ -147,42 +165,42 @@ bool AutoRoverDFRobotGravity10DoF::InitBNO055()
 
 	// Configure MAG
 	data = config_.m_pwr_mode << 5 | config_.m_op_mode << 3 | config_.m_odr;
-	if (!i2c_.WriteByte(BNO055_MAG_CONFIG, data))
+	if ( !WriteByte(BNO055_MAG_CONFIG, data) )
 	{
 		ROS_ERROR("Failed to configure magnetometer");
 		return false;
 	}
 
 	// Select page 0 to read sensors
-	if (!i2c_.WriteByte(BNO055_PAGE_ID, 0x00))
+	if ( !WriteByte(BNO055_PAGE_ID, 0x00) )
 	{
 		ROS_ERROR("Failed to select page 0 to read sensors");
 		return false;
 	}
 
 	// Select BNO055 gyro temperature source
-	if (!i2c_.WriteByte(BNO055_TEMP_SOURCE, 0x01))
+	if ( !WriteByte(BNO055_TEMP_SOURCE, 0x01) )
 	{
 		ROS_ERROR("Failed to select gyroscope temperature source");
 		return false;
 	}
 
 	// Select BNO055 sensor units (temperature in degrees F, rate in rps, accel in m/s^2)
-	if (!i2c_.WriteByte(BNO055_UNIT_SEL, 0x16))
+	if ( !WriteByte(BNO055_UNIT_SEL, 0x16) )
 	{
 		ROS_ERROR("Failed to set BNO055 sensor units to degrees F, rate in rps and accel in m/s^2");
 		return false;
 	}
 
 	// Select BNO055 system power mode
-	if (!i2c_.WriteByte(BNO055_PWR_MODE, config_.pwr_mode))
+	if ( !WriteByte(BNO055_PWR_MODE, config_.pwr_mode) )
 	{
 		ROS_ERROR("Failed to set BNO055 system power mode");
 		return false;
 	}
 
 	// Select BNO055 system operation mode
-	if (!i2c_.WriteByte(BNO055_OPR_MODE, config_.opr_mode))
+	if ( !WriteByte(BNO055_OPR_MODE, config_.opr_mode) )
 	{
 		ROS_ERROR("Failed to set BNO055 operation mode.");
 		return false;
@@ -198,7 +216,7 @@ bool AutoRoverDFRobotGravity10DoF::InitBMP280()
 {
 	uint8_t data;
 
-	if (!i2c_.IsConnected())
+	if ( !IsConnected() )
 	{
 		ROS_ERROR("Not connected to Gravity 10DoF. Aborting BMP280 initialization.");
 		return false;
@@ -207,7 +225,7 @@ bool AutoRoverDFRobotGravity10DoF::InitBMP280()
 	ROS_INFO("Initializing BMP280 altimeter and pressure sensor");
 
 	// Reset before initialization
-	if (!i2c_.WriteByte(BMP280_RESET, 0xB6))
+	if ( !WriteByte(BMP280_RESET, 0xB6) )
 	{
 		ROS_ERROR("Failed to reset BMP280");
 		return false;
@@ -215,7 +233,7 @@ bool AutoRoverDFRobotGravity10DoF::InitBMP280()
 
 	// Set T and P oversampling rates and sensor mode
 	data = config_.t_osr << 5 | config_.p_osr << 2 | config_.mode;
-	if (!i2c_.WriteByte(BMP280_CTRL_MEAS, data))
+	if (!WriteByte(BMP280_CTRL_MEAS, data))
 	{
 		ROS_ERROR("Failed to set BMP280 oversampling rates and sensor mode");
 		return false;
@@ -223,14 +241,14 @@ bool AutoRoverDFRobotGravity10DoF::InitBMP280()
 
 	// Set standby time interval in normal mode and bandwidth
 	data = config_.sby << 5 | config_.iir_filter << 2;
-	if (!i2c_.WriteByte(BMP280_CONFIG, data))
+	if (!WriteByte(BMP280_CONFIG, data))
 	{
 		ROS_ERROR("Failed to set BMP280 standby time interval for normal mode and bandwidth");
 		return false;
 	}
 
 	// Read and store calibration data
-	if (!i2c_.ReadBytes(BMP280_CALIB00, bmp_calib_, BMP280_CALIB_SIZE))
+	if (!ReadBytes(BMP280_CALIB00, bmp_calib_, BMP280_CALIB_SIZE))
 	{
 		ROS_ERROR("Failed to calibrate the BMP280");
 		return false;
@@ -264,13 +282,13 @@ bool AutoRoverDFRobotGravity10DoF::AccelGyroCalBNO055()
 	ROS_INFO("Accel/Gyro Calibration: Put device on a level surface and keep motionless! Wait...");
 	this_thread::sleep_for(chrono::milliseconds(4000));
 
-	if (!i2c_.WriteByte(BNO055_PAGE_ID, 0x00))
+	if (!WriteByte(BNO055_PAGE_ID, 0x00))
 	{
 		ROS_ERROR("Failed to select page 0 to read sensors");
 		return false;
 	}
 
-	if (!i2c_.WriteByte(BNO055_OPR_MODE, config_.mode))
+	if (!WriteByte(BNO055_OPR_MODE, config_.mode))
 	{
 		ROS_ERROR("Failed to set BNO055 into config mode");
 		return false;
@@ -278,7 +296,7 @@ bool AutoRoverDFRobotGravity10DoF::AccelGyroCalBNO055()
 	this_thread::sleep_for(chrono::milliseconds(25));
 
 
-	if (!i2c_.WriteByte(BNO055_OPR_MODE, AMG))
+	if (!WriteByte(BNO055_OPR_MODE, AMG))
 	{
 		ROS_ERROR("Failed to set BNO055 operation mode to Accelerometer, Magnetometer, Gyroscope");
 		return false;
@@ -288,7 +306,7 @@ bool AutoRoverDFRobotGravity10DoF::AccelGyroCalBNO055()
 	// In NDF fusion mode, accel full scale is at +/- 4g, ODR is 62.5 Hz, set it the same here
 	//
 	tmp = config_.a_pwr_mode << 5 | config_.a_bw << 2 | AFS_4G;
-	if (!i2c_.WriteByte(BNO055_ACC_CONFIG, tmp))
+	if (!WriteByte(BNO055_ACC_CONFIG, tmp))
 	{
 		ROS_ERROR("Failed to configure accelerometer");
 		return false;
@@ -297,7 +315,7 @@ bool AutoRoverDFRobotGravity10DoF::AccelGyroCalBNO055()
 	vector<int16_t> temp(3, 0x00);
 	for (int i = 0; i < sample_cnt; i++)
 	{
-		if (!i2c_.ReadBytes(BNO055_ACC_DATA_X_LSB, data, data.size()))
+		if (!ReadBytes(BNO055_ACC_DATA_X_LSB, data, data.size()))
 		{
 			ROS_WARN("Multi-byte read failed during accelerometer calibration. Results may be skewed");
 		}
@@ -334,13 +352,13 @@ bool AutoRoverDFRobotGravity10DoF::AccelGyroCalBNO055()
 	//
 	// In NDF fusion mode, gyro full scale is at +/- 2000 dps, ODR is 32 Hz
 	//
-	if (!i2c_.WriteByte(BNO055_GYRO_CONFIG_0, config_.g_bw << 3 | GFS_2000DPS))
+	if (!WriteByte(BNO055_GYRO_CONFIG_0, config_.g_bw << 3 | GFS_2000DPS))
 	{
 		ROS_ERROR("Failed to configure gyro");
 		return false;
 	}
 
-	if (!i2c_.WriteByte(BNO055_GYRO_CONFIG_1, config_.g_pwr_mode))
+	if (!WriteByte(BNO055_GYRO_CONFIG_1, config_.g_pwr_mode))
 	{
 		ROS_ERROR("Failed to configure gyro");
 		return false;
@@ -354,7 +372,7 @@ bool AutoRoverDFRobotGravity10DoF::AccelGyroCalBNO055()
 	bias.resize(3, 0);
 	for (int i = 0; i < sample_cnt; i++)
 	{
-		if (!i2c_.ReadBytes(BNO055_GYR_DATA_X_LSB, data, data.size()))
+		if (!ReadBytes(BNO055_GYR_DATA_X_LSB, data, data.size()))
 		{
 			ROS_WARN("Multi-byte read failed during gyroscope calibration. Results may be skewed");
 		}
@@ -386,7 +404,7 @@ bool AutoRoverDFRobotGravity10DoF::AccelGyroCalBNO055()
 	// Return to config mode to write accelerometer biases in offset register
 	// This offset register is only used while in fusion mode when accelerometer full-scale is +/- 4g
 
-	if (!i2c_.WriteByte(BNO055_OPR_MODE, CONFIGMODE))
+	if (!WriteByte(BNO055_OPR_MODE, CONFIGMODE))
 	{
 		ROS_ERROR("Failed to put BNO055 into config mode.");
 		return false;
@@ -396,32 +414,32 @@ bool AutoRoverDFRobotGravity10DoF::AccelGyroCalBNO055()
 	//
 	// Write accelerometer biases to offset register
 	//
-	if (!i2c_.WriteByte(BNO055_ACC_OFFSET_X_LSB, static_cast<int16_t>(accel_bias_[0]) & 0xFF))
+	if (!WriteByte(BNO055_ACC_OFFSET_X_LSB, static_cast<int16_t>(accel_bias_[0]) & 0xFF))
 	{
 		ROS_WARN("Failed to write accelerometer offset X LSB");
 	}
 
-	if (!i2c_.WriteByte(BNO055_ACC_OFFSET_X_MSB, (static_cast<int16_t>(accel_bias_[0]) >> 8) & 0xFF))
+	if (!WriteByte(BNO055_ACC_OFFSET_X_MSB, (static_cast<int16_t>(accel_bias_[0]) >> 8) & 0xFF))
 	{
 		ROS_WARN("Failed to write accelerometer offset X MSB");
 	}
 
-	if (!i2c_.WriteByte(BNO055_ACC_OFFSET_Y_LSB, static_cast<int16_t>(accel_bias_[1]) & 0xFF))
+	if (!WriteByte(BNO055_ACC_OFFSET_Y_LSB, static_cast<int16_t>(accel_bias_[1]) & 0xFF))
 	{
 		ROS_WARN("Failed to write accelerometer offset X LSB");
 	}
 
-	if (!i2c_.WriteByte(BNO055_ACC_OFFSET_Y_MSB, (static_cast<int16_t>(accel_bias_[1]) >> 8) & 0xFF))
+	if (!WriteByte(BNO055_ACC_OFFSET_Y_MSB, (static_cast<int16_t>(accel_bias_[1]) >> 8) & 0xFF))
 	{
 		ROS_WARN("Failed to write accelerometer offset X MSB");
 	}
 
-	if (!i2c_.WriteByte(BNO055_ACC_OFFSET_Z_LSB, static_cast<int16_t>(accel_bias_[2]) & 0xFF))
+	if (!WriteByte(BNO055_ACC_OFFSET_Z_LSB, static_cast<int16_t>(accel_bias_[2]) & 0xFF))
 	{
 		ROS_WARN("Failed to write accelerometer offset X LSB");
 	}
 
-	if (!i2c_.WriteByte(BNO055_ACC_OFFSET_Z_MSB, (static_cast<int16_t>(accel_bias_[2]) >> 8) & 0xFF))
+	if (!WriteByte(BNO055_ACC_OFFSET_Z_MSB, (static_cast<int16_t>(accel_bias_[2]) >> 8) & 0xFF))
 	{
 		ROS_WARN("Failed to write accelerometer offset X MSB");
 	}
@@ -429,77 +447,77 @@ bool AutoRoverDFRobotGravity10DoF::AccelGyroCalBNO055()
     // Check that offsets were properly written to offset registers
     uint8_t byte;
     int16_t sensor_bias;
-    i2c_.ReadByte(BNO055_ACC_OFFSET_X_MSB, byte);
+    ReadByte(BNO055_ACC_OFFSET_X_MSB, byte);
     sensor_bias = byte << 8;
-    i2c_.ReadByte(BNO055_ACC_OFFSET_X_LSB, byte);
+    ReadByte(BNO055_ACC_OFFSET_X_LSB, byte);
     sensor_bias |= byte;
     ROS_INFO("Average accelerometer X bias = %i", sensor_bias);
 
-    i2c_.ReadByte(BNO055_ACC_OFFSET_Y_MSB, byte);
+    ReadByte(BNO055_ACC_OFFSET_Y_MSB, byte);
     sensor_bias = byte << 8;
-    i2c_.ReadByte(BNO055_ACC_OFFSET_Y_LSB, byte);
+    ReadByte(BNO055_ACC_OFFSET_Y_LSB, byte);
     sensor_bias |= byte;
     ROS_INFO("Average accelerometer Y bias = %i", sensor_bias);
 
-    i2c_.ReadByte(BNO055_ACC_OFFSET_Z_MSB, byte);
+    ReadByte(BNO055_ACC_OFFSET_Z_MSB, byte);
     sensor_bias = byte << 8;
-    i2c_.ReadByte(BNO055_ACC_OFFSET_Z_LSB, byte);
+    ReadByte(BNO055_ACC_OFFSET_Z_LSB, byte);
     sensor_bias |= byte;
     ROS_INFO("Average accelerometer Z bias = %i", sensor_bias);
 
 	//
 	// Write gyroscope biases to offset register
 	//
-	if (!i2c_.WriteByte(BNO055_GYR_OFFSET_X_LSB, static_cast<int16_t>(gyro_bias_[0]) & 0xFF))
+	if (!WriteByte(BNO055_GYR_OFFSET_X_LSB, static_cast<int16_t>(gyro_bias_[0]) & 0xFF))
 	{
 		ROS_WARN("Failed to write gyroscope offset X LSB");
 	}
 
-	if (!i2c_.WriteByte(BNO055_GYR_OFFSET_X_MSB, (static_cast<int16_t>(gyro_bias_[0]) >> 8) & 0xFF))
+	if (!WriteByte(BNO055_GYR_OFFSET_X_MSB, (static_cast<int16_t>(gyro_bias_[0]) >> 8) & 0xFF))
 	{
 		ROS_WARN("Failed to write gyroscope offset X MSB");
 	}
 
-	if (!i2c_.WriteByte(BNO055_GYR_OFFSET_Y_LSB, static_cast<int16_t>(gyro_bias_[1]) & 0xFF))
+	if (!WriteByte(BNO055_GYR_OFFSET_Y_LSB, static_cast<int16_t>(gyro_bias_[1]) & 0xFF))
 	{
 		ROS_WARN("Failed to write gyroscope offset X LSB");
 	}
 
-	if (!i2c_.WriteByte(BNO055_GYR_OFFSET_Y_MSB, (static_cast<int16_t>(gyro_bias_[1]) >> 8) & 0xFF))
+	if (!WriteByte(BNO055_GYR_OFFSET_Y_MSB, (static_cast<int16_t>(gyro_bias_[1]) >> 8) & 0xFF))
 	{
 		ROS_WARN("Failed to write gyroscope offset X MSB");
 	}
 
-	if (!i2c_.WriteByte(BNO055_GYR_OFFSET_Z_LSB, static_cast<int16_t>(gyro_bias_[2]) & 0xFF))
+	if (!WriteByte(BNO055_GYR_OFFSET_Z_LSB, static_cast<int16_t>(gyro_bias_[2]) & 0xFF))
 	{
 		ROS_WARN("Failed to write gyroscope offset X LSB");
 	}
 
-	if (!i2c_.WriteByte(BNO055_GYR_OFFSET_Z_MSB, (static_cast<int16_t>(gyro_bias_[2]) >> 8) & 0xFF))
+	if (!WriteByte(BNO055_GYR_OFFSET_Z_MSB, (static_cast<int16_t>(gyro_bias_[2]) >> 8) & 0xFF))
 	{
 		ROS_WARN("Failed to write gyroscope offset X MSB");
 	}
 
-    i2c_.ReadByte(BNO055_GYR_OFFSET_X_MSB, byte);
+    ReadByte(BNO055_GYR_OFFSET_X_MSB, byte);
     sensor_bias = byte << 8;
-    i2c_.ReadByte(BNO055_GYR_OFFSET_X_LSB, byte);
+    ReadByte(BNO055_GYR_OFFSET_X_LSB, byte);
     sensor_bias |= byte;
     ROS_INFO("Average gyroscope X bias = %i", sensor_bias);
 
-    i2c_.ReadByte(BNO055_GYR_OFFSET_Y_MSB, byte);
+    ReadByte(BNO055_GYR_OFFSET_Y_MSB, byte);
     sensor_bias = byte << 8;
-    i2c_.ReadByte(BNO055_GYR_OFFSET_Y_LSB, byte);
+    ReadByte(BNO055_GYR_OFFSET_Y_LSB, byte);
     sensor_bias |= byte;
     ROS_INFO("Average gyroscope Y bias = %i", sensor_bias);
 
-    i2c_.ReadByte(BNO055_GYR_OFFSET_Z_MSB, byte);
+    ReadByte(BNO055_GYR_OFFSET_Z_MSB, byte);
     sensor_bias = byte << 8;
-    i2c_.ReadByte(BNO055_GYR_OFFSET_Z_LSB, byte);
+    ReadByte(BNO055_GYR_OFFSET_Z_LSB, byte);
     sensor_bias |= byte;
     ROS_INFO("Average gyroscope Z bias = %i", sensor_bias);
 
 	// Select BNO055 system operation mode
-	if (!i2c_.WriteByte(BNO055_OPR_MODE, config_.opr_mode))
+	if (!WriteByte(BNO055_OPR_MODE, config_.opr_mode))
 	{
 		ROS_ERROR("Failed to set BNO055 to NDOF operation mode");
 		return false;
@@ -521,21 +539,21 @@ bool AutoRoverDFRobotGravity10DoF::MagCalBNO055()
 	this_thread::sleep_for(chrono::milliseconds(4000));
 
 	// Select page 0 to read sensors
-	if (!i2c_.WriteByte(BNO055_PAGE_ID, 0x00))
+	if (!WriteByte(BNO055_PAGE_ID, 0x00))
 	{
 		ROS_ERROR("Failed to select page 0 for magnetometer calibration");
 		return false;
 	}
 
 	// Select BNO055 system operation mode as NDOF for calibration
-	if (!i2c_.WriteByte(BNO055_OPR_MODE, CONFIGMODE))
+	if (!WriteByte(BNO055_OPR_MODE, CONFIGMODE))
 	{
 		ROS_ERROR("Failed to set BNO055 operation mode to NDOF");
 		return false;
 	}
 	this_thread::sleep_for(chrono::milliseconds(25));
 
-	if (!i2c_.WriteByte(BNO055_OPR_MODE, AMG))
+	if (!WriteByte(BNO055_OPR_MODE, AMG))
 	{
 		ROS_ERROR("Failed to magnetometer mode");
 		return false;
@@ -546,7 +564,7 @@ bool AutoRoverDFRobotGravity10DoF::MagCalBNO055()
 	vector<int16_t> mag_temp(3, 0);
 	for (ii = 0; ii < sample_count; ii++)
 	{
-		if (!i2c_.ReadBytes(BNO055_MAG_DATA_X_LSB, data,
+		if (!ReadBytes(BNO055_MAG_DATA_X_LSB, data,
 		                    data.size()))  // Read the six raw data registers into data array
 		{
 			ROS_WARN("Failed to read mag data for calibration. Skipping sample");
@@ -589,7 +607,7 @@ bool AutoRoverDFRobotGravity10DoF::MagCalBNO055()
 
 	// Return to config mode to write mag biases in offset register
 	// This offset register is only used while in fusion mode when magnetometer sensitivity is 16 LSB/microTesla
-	if (!i2c_.WriteByte(BNO055_OPR_MODE, CONFIGMODE))
+	if (!WriteByte(BNO055_OPR_MODE, CONFIGMODE))
 	{
 		ROS_ERROR("Failed to put BNO055 in to configuration mode");
 		return false;
@@ -599,38 +617,38 @@ bool AutoRoverDFRobotGravity10DoF::MagCalBNO055()
 	//
 	// Write biases to accelerometer offset registers as 16 LSB/microTesla
 	//
-	if (!i2c_.WriteByte(BNO055_MAG_OFFSET_X_LSB, static_cast<int16_t>(mag_bias_[0]) & 0xFF))
+	if (!WriteByte(BNO055_MAG_OFFSET_X_LSB, static_cast<int16_t>(mag_bias_[0]) & 0xFF))
 	{
 		ROS_WARN("Failed to write magnetometer offset X LSB");
 	}
 
-	if (!i2c_.WriteByte(BNO055_MAG_OFFSET_X_MSB, (static_cast<int16_t>(mag_bias_[0]) >> 8) & 0xFF))
+	if (!WriteByte(BNO055_MAG_OFFSET_X_MSB, (static_cast<int16_t>(mag_bias_[0]) >> 8) & 0xFF))
 	{
 		ROS_WARN("Failed to write magnetometer offset X MSB");
 	}
 
-	if (!i2c_.WriteByte(BNO055_MAG_OFFSET_Y_LSB, static_cast<int16_t>(mag_bias_[1]) & 0xFF))
+	if (!WriteByte(BNO055_MAG_OFFSET_Y_LSB, static_cast<int16_t>(mag_bias_[1]) & 0xFF))
 	{
 		ROS_WARN("Failed to write magnetometer offset X LSB");
 	}
 
-	if (!i2c_.WriteByte(BNO055_MAG_OFFSET_Y_MSB, (static_cast<int16_t>(mag_bias_[1]) >> 8) & 0xFF))
+	if (!WriteByte(BNO055_MAG_OFFSET_Y_MSB, (static_cast<int16_t>(mag_bias_[1]) >> 8) & 0xFF))
 	{
 		ROS_WARN("Failed to write magnetometer offset X MSB");
 	}
 
-	if (!i2c_.WriteByte(BNO055_MAG_OFFSET_Z_LSB, static_cast<int16_t>(mag_bias_[2]) & 0xFF))
+	if (!WriteByte(BNO055_MAG_OFFSET_Z_LSB, static_cast<int16_t>(mag_bias_[2]) & 0xFF))
 	{
 		ROS_WARN("Failed to write magnetometer offset X LSB");
 	}
 
-	if (!i2c_.WriteByte(BNO055_MAG_OFFSET_Z_MSB, (static_cast<int16_t>(mag_bias_[2]) >> 8) & 0xFF))
+	if (!WriteByte(BNO055_MAG_OFFSET_Z_MSB, (static_cast<int16_t>(mag_bias_[2]) >> 8) & 0xFF))
 	{
 		ROS_WARN("Failed to write magnetometer offset X MSB");
 	}
 
 	// Select BNO055 system operation mode
-	if (!i2c_.WriteByte(BNO055_OPR_MODE, config_.opr_mode))
+	if (!WriteByte(BNO055_OPR_MODE, config_.opr_mode))
 	{
 		ROS_ERROR("Failed to set BNO055 to NDOF operation mode");
 		return false;
@@ -680,7 +698,7 @@ uint32_t AutoRoverDFRobotGravity10DoF::CompensatePressure(int32_t &adc)
 int32_t AutoRoverDFRobotGravity10DoF::ReadBMP280Temperature()
 {
 	vector<uint8_t> rawData(3); // 20-bit temperature register data stored here
-	if (!i2c_.ReadBytes(BMP280_TEMP_MSB, rawData, rawData.size()))
+	if (!ReadBytes(BMP280_TEMP_MSB, rawData, rawData.size()))
 	{
 		ROS_ERROR("Failed to read raw temperature data");
 		return INFINITY;
@@ -692,7 +710,7 @@ int32_t AutoRoverDFRobotGravity10DoF::ReadBMP280Temperature()
 int32_t AutoRoverDFRobotGravity10DoF::ReadBMP280Pressure()
 {
 	vector<uint8_t> rawData(3);  // 20-bit pressure register data stored here
-	if (!i2c_.ReadBytes(BMP280_PRESS_MSB, rawData, rawData.size()))
+	if (!ReadBytes(BMP280_PRESS_MSB, rawData, rawData.size()))
 	{
 		ROS_ERROR("Failed to read raw temperature data");
 		return INFINITY;
@@ -709,7 +727,7 @@ void AutoRoverDFRobotGravity10DoF::ReadAccelData(vector<double> &destination)
 	destination.resize(3, 0);
 
 	// Read the six raw data registers into data array
-	if (!i2c_.ReadBytes(BNO055_ACC_DATA_X_LSB, rawData, rawData.size()))
+	if (!ReadBytes(BNO055_ACC_DATA_X_LSB, rawData, rawData.size()))
 	{
 		ROS_ERROR("Failed to read accelerometer x/y/z");
 		return;
@@ -730,7 +748,7 @@ void AutoRoverDFRobotGravity10DoF::ReadGyroData(vector<double> &destination)
 	destination.resize(3, 0);
 
 	// Read the six raw data registers into data array
-	if (!i2c_.ReadBytes(BNO055_GYR_DATA_X_LSB, rawData, rawData.size()))
+	if (!ReadBytes(BNO055_GYR_DATA_X_LSB, rawData, rawData.size()))
 	{
 		ROS_ERROR("Failed to read gyroscope x/y/z");
 		return;
@@ -746,7 +764,7 @@ int8_t AutoRoverDFRobotGravity10DoF::ReadGyroTempData()
 {
 	uint8_t data;
 
-	if (!i2c_.ReadByte(BNO055_TEMP, data))
+	if (!ReadByte(BNO055_TEMP, data))
 	{
 		ROS_ERROR("Failed to read raw temperature data");
 		return INFINITY;
@@ -763,7 +781,7 @@ void AutoRoverDFRobotGravity10DoF::ReadMagData(vector<double> &destination)
 	destination.resize(3, 0);
 
 	// Read the six raw data registers into data array
-	if (!i2c_.ReadBytes(BNO055_MAG_DATA_X_LSB, rawData, rawData.size()))
+	if (!ReadBytes(BNO055_MAG_DATA_X_LSB, rawData, rawData.size()))
 	{
 		ROS_ERROR("Failed to read magnetometer x/y/z");
 		return;
@@ -783,7 +801,7 @@ void AutoRoverDFRobotGravity10DoF::ReadQuatData(vector<double> &destination)
 	destination.resize(4, 0);
 
 	// Read the six raw data registers into data array
-	if (!i2c_.ReadBytes(BNO055_QUA_DATA_W_LSB, rawData, rawData.size()))
+	if (!ReadBytes(BNO055_QUA_DATA_W_LSB, rawData, rawData.size()))
 	{
 		ROS_ERROR("Failed to read quaternion data");
 		return;
@@ -804,7 +822,7 @@ void AutoRoverDFRobotGravity10DoF::ReadEulData(vector<double> &destination)
 	destination.resize(3, 0);
 
 	// Read the six raw data registers into data array
-	if (!i2c_.ReadBytes(BNO055_EUL_HEADING_LSB, rawData, rawData.size()))
+	if (!ReadBytes(BNO055_EUL_HEADING_LSB, rawData, rawData.size()))
 	{
 		ROS_ERROR("Failed to read euler heading/pitch/yaw");
 		return;
@@ -824,7 +842,7 @@ void AutoRoverDFRobotGravity10DoF::ReadLIAData(vector<double> &destination)
 	destination.resize(3, 0);
 
 	// Read the six raw data registers into data array
-	if (!i2c_.ReadBytes(BNO055_LIA_DATA_X_LSB, rawData, rawData.size()))
+	if (!ReadBytes(BNO055_LIA_DATA_X_LSB, rawData, rawData.size()))
 	{
 		ROS_ERROR("Failed to read linear acceleration x/y/z");
 		return;
@@ -844,7 +862,7 @@ void AutoRoverDFRobotGravity10DoF::ReadGRVData(vector<double> &destination)
 	destination.resize(3, 0);
 
 	// Read the six raw data registers into data array
-	if (!i2c_.ReadBytes(BNO055_GRV_DATA_X_LSB, rawData, rawData.size()))
+	if (!ReadBytes(BNO055_GRV_DATA_X_LSB, rawData, rawData.size()))
 	{
 		ROS_ERROR("Failed to read gravity vector x/y/z");
 		return;

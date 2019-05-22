@@ -395,13 +395,15 @@ namespace auto_rover_dfrobot_gravity_10dof
 		int16_t dig_p9;
 	} BMP280CompensationParams;
 
-	class AutoRoverDFRobotGravity10DoF
+	class AutoRoverDFRobotGravity10DoF : public I2C
 	{
 	public:
 		explicit AutoRoverDFRobotGravity10DoF(const uint8_t &bus, const uint8_t& device);
 		~AutoRoverDFRobotGravity10DoF();
 
 		void Initialize();
+
+		void Reset();
 
 		void SetConfiguration(DFRobotGravity10DoFConfig &config);
 
@@ -438,7 +440,6 @@ namespace auto_rover_dfrobot_gravity_10dof
 		void ReadGRVData(vector<double>& destination);
 
 	private:
-		I2C i2c_;
 		vector<uint8_t> bmp_calib_;
 		vector<float> accel_bias_;
 		vector<float> gyro_bias_;

@@ -24,8 +24,21 @@
 
 #include <ros/ros.h>
 #include <ros/console.h>
+#include <dynamic_reconfigure/server.h>
 #include <sensor_msgs/Imu.h>
 #include <auto_rover_dfrobot_gravity_10dof/auto_rover_dfrobot_gravity_10dof.h>
+#include <auto_rover_dfrobot_gravity_10dof/Gravity10DoFConfig.h>
+
+// Setup the IMU
+auto_rover_dfrobot_gravity_10dof::AutoRoverDFRobotGravity10DoF imu_(1, 0x28);
+
+void dyn_config_cb(auto_rover_dfrobot_gravity_10dof::Gravity10DoFConfig &config, uint32_t level)
+{
+	if ( config.reset )
+	{
+		imu_.Reset();
+	}
+}
 
 int main(int argc, char** argv)
 {
@@ -43,18 +56,15 @@ int main(int argc, char** argv)
 
 	ros::Publisher imu_pub = nh.advertise<sensor_msgs::Imu>("Imu", 10);
 
-	// Setup the IMU
-	auto_rover_dfrobot_gravity_10dof::AutoRoverDFRobotGravity10DoF imu(1, 0x28);
+	imu_.Initialize();
 
-	imu.Initialize();
-
-    if ( !imu.InitBNO055() )
+    if ( !imu_.InitBNO055() )
     {
         ROS_ERROR("Failed to initialize BNO055!");
         return -1;
     }
 
-	if ( !imu.InitBMP280() )
+	if ( !imu_.InitBMP280() )
 	{
         ROS_ERROR("Failed to initialize BMP280!");
 		return -1;
@@ -65,7 +75,7 @@ int main(int argc, char** argv)
         nh.getParam("calibrate_imu", calibrate_imu);
         if ( calibrate_imu )
         {
-            if ( !imu.AccelGyroCalBNO055() )
+            if ( !imu_.AccelGyroCalBNO055() )
                 ROS_ERROR("Failed to calibrate the Accelerometer and Gyroscope");
         }
     }
@@ -75,17 +85,23 @@ int main(int argc, char** argv)
         nh.getParam("calibrate_mag", calibrate_mag);
         if ( calibrate_mag )
         {
-            if ( !imu.MagCalBNO055() )
+            if ( !imu_.MagCalBNO055() )
                 ROS_ERROR("Failed to calibrate the magnetometer");
         }
     }
 
+	dynamic_reconfigure::Server<auto_rover_dfrobot_gravity_10dof::Gravity10DoFConfig> server;
+	dynamic_reconfigure::Server<auto_rover_dfrobot_gravity_10dof::Gravity10DoFConfig>::CallbackType cb;
+
+	cb = boost::bind(&dyn_config_cb, _1, _2);
+	server.setCallback(cb);
+
 	ros::Rate loop_rate(100);
 	while ( ros::ok() )
 	{
-		imu.ReadLIAData(accel);
-		imu.ReadGyroData(gyro);
-		imu.ReadQuatData(quat);
+		imu_.ReadLIAData(accel);
+		imu_.ReadGyroData(gyro);
+		imu_.ReadQuatData(quat);
 
 		msg.angular_velocity.x = gyro[0];
 		msg.angular_velocity.y = gyro[1];

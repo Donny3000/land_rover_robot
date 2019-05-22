@@ -31,7 +31,7 @@
 #include <vector>
 #include <cstdint>
 extern "C" {
-#include <i2c/smbus.h>
+//#include <i2c/smbus.h>
 #include <linux/i2c-dev.h>
 #include <sys/ioctl.h>
 #include <sys/types.h>
@@ -47,12 +47,13 @@ namespace auto_rover_dfrobot_gravity_10dof
 {
 	class I2C
 	{
-	public:;
+	public:
 		I2C(const uint8_t& bus, const uint8_t& addr, bool is_ten_bit = false);
 		~I2C();
 
 		bool IsConnected() { return is_initialized_; }
 
+	protected:
 		virtual bool WriteByte(const uint8_t& data);
 		virtual bool WriteByte(const uint16_t& addr, const uint8_t& data);
 		virtual bool WriteBytes(const uint16_t& addr, const vector<uint8_t>& data);

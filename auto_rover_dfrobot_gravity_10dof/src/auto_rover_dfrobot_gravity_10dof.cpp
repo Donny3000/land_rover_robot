@@ -327,9 +327,9 @@ bool AutoRoverDFRobotGravity10DoF::AccelGyroCalBNO055()
 		bias[2] += 1000;
 
 	// Save accel bias
-	accel_bias_[0] = static_cast<float>(bias[0]);
-	accel_bias_[1] = static_cast<float>(bias[1]);
-	accel_bias_[2] = static_cast<float>(bias[2]);
+	accel_bias_[0] = static_cast<double>(bias[0]);
+	accel_bias_[1] = static_cast<double>(bias[1]);
+	accel_bias_[2] = static_cast<double>(bias[2]);
 
 	//
 	// In NDF fusion mode, gyro full scale is at +/- 2000 dps, ODR is 32 Hz
@@ -379,9 +379,9 @@ bool AutoRoverDFRobotGravity10DoF::AccelGyroCalBNO055()
 
 	// Save gyro bias for later use
 	// Gyro data is 16 LSB/dps
-	gyro_bias_[0] = static_cast<float>(bias[0] / 16.);
-	gyro_bias_[1] = static_cast<float>(bias[1] / 16.);
-	gyro_bias_[2] = static_cast<float>(bias[2] / 16.);
+	gyro_bias_[0] = static_cast<double>(bias[0] / 16.);
+	gyro_bias_[1] = static_cast<double>(bias[1] / 16.);
+	gyro_bias_[2] = static_cast<double>(bias[2] / 16.);
 
 	// Return to config mode to write accelerometer biases in offset register
 	// This offset register is only used while in fusion mode when accelerometer full-scale is +/- 4g
@@ -426,6 +426,27 @@ bool AutoRoverDFRobotGravity10DoF::AccelGyroCalBNO055()
 		ROS_WARN("Failed to write accelerometer offset X MSB");
 	}
 
+    // Check that offsets were properly written to offset registers
+    uint8_t byte;
+    int16_t sensor_bias;
+    i2c_.ReadByte(BNO055_ACC_OFFSET_X_MSB, byte);
+    sensor_bias = byte << 8;
+    i2c_.ReadByte(BNO055_ACC_OFFSET_X_LSB, byte);
+    sensor_bias |= byte;
+    ROS_INFO("Average accelerometer X bias = %i", sensor_bias);
+
+    i2c_.ReadByte(BNO055_ACC_OFFSET_Y_MSB, byte);
+    sensor_bias = byte << 8;
+    i2c_.ReadByte(BNO055_ACC_OFFSET_Y_LSB, byte);
+    sensor_bias |= byte;
+    ROS_INFO("Average accelerometer Y bias = %i", sensor_bias);
+
+    i2c_.ReadByte(BNO055_ACC_OFFSET_Z_MSB, byte);
+    sensor_bias = byte << 8;
+    i2c_.ReadByte(BNO055_ACC_OFFSET_Z_LSB, byte);
+    sensor_bias |= byte;
+    ROS_INFO("Average accelerometer Z bias = %i", sensor_bias);
+
 	//
 	// Write gyroscope biases to offset register
 	//
@@ -458,6 +479,24 @@ bool AutoRoverDFRobotGravity10DoF::AccelGyroCalBNO055()
 	{
 		ROS_WARN("Failed to write gyroscope offset X MSB");
 	}
+
+    i2c_.ReadByte(BNO055_GYR_OFFSET_X_MSB, byte);
+    sensor_bias = byte << 8;
+    i2c_.ReadByte(BNO055_GYR_OFFSET_X_LSB, byte);
+    sensor_bias |= byte;
+    ROS_INFO("Average gyroscope X bias = %i", sensor_bias);
+
+    i2c_.ReadByte(BNO055_GYR_OFFSET_Y_MSB, byte);
+    sensor_bias = byte << 8;
+    i2c_.ReadByte(BNO055_GYR_OFFSET_Y_LSB, byte);
+    sensor_bias |= byte;
+    ROS_INFO("Average gyroscope Y bias = %i", sensor_bias);
+
+    i2c_.ReadByte(BNO055_GYR_OFFSET_Z_MSB, byte);
+    sensor_bias = byte << 8;
+    i2c_.ReadByte(BNO055_GYR_OFFSET_Z_LSB, byte);
+    sensor_bias |= byte;
+    ROS_INFO("Average gyroscope Z bias = %i", sensor_bias);
 
 	// Select BNO055 system operation mode
 	if (!i2c_.WriteByte(BNO055_OPR_MODE, config_.opr_mode))
@@ -536,17 +575,17 @@ bool AutoRoverDFRobotGravity10DoF::MagCalBNO055()
 		this_thread::sleep_for(chrono::milliseconds(105)); // at 10 Hz ODR, new mag data is available every 100 ms
 	}
 
-	//   Serial.println("mag x min/max:"); Serial.println(mag_max[0]); Serial.println(mag_min[0]);
-	//   Serial.println("mag y min/max:"); Serial.println(mag_max[1]); Serial.println(mag_min[1]);
-	//   Serial.println("mag z min/max:"); Serial.println(mag_max[2]); Serial.println(mag_min[2]);
+    ROS_INFO("Mag X min/max: %i, %i", mag_min[0], mag_max[0]);
+    ROS_INFO("Mag Y min/max: %i, %i", mag_min[1], mag_max[1]);
+    ROS_INFO("Mag Z min/max: %i, %i", mag_min[2], mag_max[2]);
 
 	mag_bias[0] = (mag_max[0] + mag_min[0]) / 2;  // get average x mag bias in counts
 	mag_bias[1] = (mag_max[1] + mag_min[1]) / 2;  // get average y mag bias in counts
 	mag_bias[2] = (mag_max[2] + mag_min[2]) / 2;  // get average z mag bias in counts
 
-	mag_bias_[0] = (float) mag_bias[0] / 1.6;  // save mag biases in mG for use in main program
-	mag_bias_[1] = (float) mag_bias[1] / 1.6;  // mag data is 1.6 LSB/mg
-	mag_bias_[2] = (float) mag_bias[2] / 1.6;
+	mag_bias_[0] = (double) mag_bias[0] / 1.6;  // save mag biases in mG for use in main program
+	mag_bias_[1] = (double) mag_bias[1] / 1.6;  // mag data is 1.6 LSB/mg
+	mag_bias_[2] = (double) mag_bias[2] / 1.6;
 
 	// Return to config mode to write mag biases in offset register
 	// This offset register is only used while in fusion mode when magnetometer sensitivity is 16 LSB/microTesla
@@ -599,6 +638,8 @@ bool AutoRoverDFRobotGravity10DoF::MagCalBNO055()
 	this_thread::sleep_for(chrono::milliseconds(25));
 
 	ROS_INFO("Magnetometer Calibration done!");
+
+    return true;
 }
 
 uint32_t AutoRoverDFRobotGravity10DoF::CompensateTemperature(int32_t &adc)
@@ -660,7 +701,7 @@ int32_t AutoRoverDFRobotGravity10DoF::ReadBMP280Pressure()
 	                              static_cast<int32_t>(rawData[2])) >> 4));
 }
 
-void AutoRoverDFRobotGravity10DoF::ReadAccelData(vector<int16_t> &destination)
+void AutoRoverDFRobotGravity10DoF::ReadAccelData(vector<double> &destination)
 {
 	vector<uint8_t> rawData(6, 0);  // x/y/z accel register data stored here
 
@@ -675,13 +716,13 @@ void AutoRoverDFRobotGravity10DoF::ReadAccelData(vector<int16_t> &destination)
 	}
 
 	// Turn the MSB and LSB into a signed 16-bit value
-	destination[0] = (static_cast<int16_t>(rawData[1]) << 8) | rawData[0];
-	destination[1] = (static_cast<int16_t>(rawData[3]) << 8) | rawData[2];
-	destination[2] = (static_cast<int16_t>(rawData[5]) << 8) | rawData[4];
+	destination[0] = static_cast<double>((static_cast<int16_t>(rawData[1]) << 8) | rawData[0]) / 100.0;
+	destination[1] = static_cast<double>((static_cast<int16_t>(rawData[3]) << 8) | rawData[2]) / 100.0;
+	destination[2] = static_cast<double>((static_cast<int16_t>(rawData[5]) << 8) | rawData[4]) / 100.0;
 }
 
 
-void AutoRoverDFRobotGravity10DoF::ReadGyroData(vector<int16_t> &destination)
+void AutoRoverDFRobotGravity10DoF::ReadGyroData(vector<double> &destination)
 {
 	vector<uint8_t> rawData(6, 0);  // x/y/z gyro register data stored here
 
@@ -696,9 +737,9 @@ void AutoRoverDFRobotGravity10DoF::ReadGyroData(vector<int16_t> &destination)
 	}
 
 	// Turn the MSB and LSB into a signed 16-bit value
-	destination[0] = (static_cast<int16_t>(rawData[1]) << 8) | rawData[0];
-	destination[1] = (static_cast<int16_t>(rawData[3]) << 8) | rawData[2];
-	destination[2] = (static_cast<int16_t>(rawData[5]) << 8) | rawData[4];
+	destination[0] = static_cast<double>((static_cast<int16_t>(rawData[1]) << 8) | rawData[0]) / 16.0;
+	destination[1] = static_cast<double>((static_cast<int16_t>(rawData[3]) << 8) | rawData[2]) / 16.0;
+	destination[2] = static_cast<double>((static_cast<int16_t>(rawData[5]) << 8) | rawData[4]) / 16.0;
 }
 
 int8_t AutoRoverDFRobotGravity10DoF::ReadGyroTempData()
@@ -714,7 +755,7 @@ int8_t AutoRoverDFRobotGravity10DoF::ReadGyroTempData()
 	return data;  // Read the two raw data registers sequentially into data array
 }
 
-void AutoRoverDFRobotGravity10DoF::ReadMagData(vector<int16_t> &destination)
+void AutoRoverDFRobotGravity10DoF::ReadMagData(vector<double> &destination)
 {
 	vector<uint8_t> rawData(6, 0);  // x/y/z mag register data stored here
 
@@ -729,12 +770,12 @@ void AutoRoverDFRobotGravity10DoF::ReadMagData(vector<int16_t> &destination)
 	}
 
 	// Turn the MSB and LSB into a signed 16-bit value
-	destination[0] = (static_cast<int16_t>(rawData[1]) << 8) | rawData[0];
-	destination[1] = (static_cast<int16_t>(rawData[3]) << 8) | rawData[2];
-	destination[2] = (static_cast<int16_t>(rawData[5]) << 8) | rawData[4];
+	destination[0] = static_cast<double>((static_cast<int16_t>(rawData[1]) << 8) | rawData[0]) / 1.6;
+	destination[1] = static_cast<double>((static_cast<int16_t>(rawData[3]) << 8) | rawData[2]) / 1.6;
+	destination[2] = static_cast<double>((static_cast<int16_t>(rawData[5]) << 8) | rawData[4]) / 1.6;
 }
 
-void AutoRoverDFRobotGravity10DoF::ReadQuatData(vector<int16_t> &destination)
+void AutoRoverDFRobotGravity10DoF::ReadQuatData(vector<double> &destination)
 {
 	vector<uint8_t> rawData(8, 0);  // w/x/y/z quaternion register data stored here
 
@@ -749,13 +790,13 @@ void AutoRoverDFRobotGravity10DoF::ReadQuatData(vector<int16_t> &destination)
 	}
 
 	// Turn the MSB and LSB into a signed 16-bit value
-	destination[0] = (static_cast<int16_t>(rawData[1]) << 8) | rawData[0];
-	destination[1] = (static_cast<int16_t>(rawData[3]) << 8) | rawData[2];
-	destination[2] = (static_cast<int16_t>(rawData[5]) << 8) | rawData[4];
-	destination[3] = (static_cast<int16_t>(rawData[7]) << 8) | rawData[6];
+	destination[0] = static_cast<double>((static_cast<int16_t>(rawData[2]) << 8) | rawData[0]) / 16384.0 ;
+	destination[1] = static_cast<double>((static_cast<int16_t>(rawData[3]) << 8) | rawData[2]) / 16384.0;
+	destination[2] = static_cast<double>((static_cast<int16_t>(rawData[5]) << 8) | rawData[4]) / 16384.0;
+	destination[3] = static_cast<double>((static_cast<int16_t>(rawData[7]) << 8) | rawData[6]) / 16384.0;
 }
 
-void AutoRoverDFRobotGravity10DoF::ReadEulData(vector<int16_t> &destination)
+void AutoRoverDFRobotGravity10DoF::ReadEulData(vector<double> &destination)
 {
 	vector<uint8_t> rawData(6, 0);  // x/y/z euler register data stored here
 
@@ -770,12 +811,12 @@ void AutoRoverDFRobotGravity10DoF::ReadEulData(vector<int16_t> &destination)
 	}
 
 	// Turn the MSB and LSB into a signed 16-bit value
-	destination[0] = (static_cast<int16_t>(rawData[1]) << 8) | rawData[0];
-	destination[1] = (static_cast<int16_t>(rawData[3]) << 8) | rawData[2];
-	destination[2] = (static_cast<int16_t>(rawData[5]) << 8) | rawData[4];
+	destination[0] = static_cast<double>((static_cast<int16_t>(rawData[1]) << 8) | rawData[0]) / 900.0;
+	destination[1] = static_cast<double>((static_cast<int16_t>(rawData[3]) << 8) | rawData[2]) / 900.0;
+	destination[2] = static_cast<double>((static_cast<int16_t>(rawData[5]) << 8) | rawData[4]) / 900.0;
 }
 
-void AutoRoverDFRobotGravity10DoF::ReadLIAData(vector<int16_t> &destination)
+void AutoRoverDFRobotGravity10DoF::ReadLIAData(vector<double> &destination)
 {
 	vector<uint8_t> rawData(6, 0);  // x/y/z linear accel register data stored here
 
@@ -790,12 +831,12 @@ void AutoRoverDFRobotGravity10DoF::ReadLIAData(vector<int16_t> &destination)
 	}
 
 	// Turn the MSB and LSB into a signed 16-bit value
-	destination[0] = (static_cast<int16_t>(rawData[1]) << 8) | rawData[0];
-	destination[1] = (static_cast<int16_t>(rawData[3]) << 8) | rawData[2];
-	destination[2] = (static_cast<int16_t>(rawData[5]) << 8) | rawData[4];
+	destination[0] = static_cast<double>((static_cast<int16_t>(rawData[1]) << 8) | rawData[0]) / 100.0;
+	destination[1] = static_cast<double>((static_cast<int16_t>(rawData[3]) << 8) | rawData[2]) / 100.0;
+	destination[2] = static_cast<double>((static_cast<int16_t>(rawData[5]) << 8) | rawData[4]) / 100.0;
 }
 
-void AutoRoverDFRobotGravity10DoF::ReadGRVData(vector<int16_t> &destination)
+void AutoRoverDFRobotGravity10DoF::ReadGRVData(vector<double> &destination)
 {
 	vector<uint8_t> rawData(6, 0);  // x/y/z gravity vector register data stored here
 
@@ -810,7 +851,7 @@ void AutoRoverDFRobotGravity10DoF::ReadGRVData(vector<int16_t> &destination)
 	}
 
 	// Turn the MSB and LSB into a signed 16-bit value
-	destination[0] = (static_cast<int16_t>(rawData[1]) << 8) | rawData[0];
-	destination[1] = (static_cast<int16_t>(rawData[3]) << 8) | rawData[2];
-	destination[2] = (static_cast<int16_t>(rawData[5]) << 8) | rawData[4];
+	destination[0] = static_cast<double>((static_cast<int16_t>(rawData[1]) << 8) | rawData[0]) / 100.0;
+	destination[1] = static_cast<double>((static_cast<int16_t>(rawData[3]) << 8) | rawData[2]) / 100.0;
+	destination[2] = static_cast<double>((static_cast<int16_t>(rawData[5]) << 8) | rawData[4]) / 100.0;
 }

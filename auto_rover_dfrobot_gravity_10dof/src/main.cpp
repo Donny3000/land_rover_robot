@@ -33,6 +33,14 @@ int main(int argc, char** argv)
 
 	ros::NodeHandle nh("~");
 
+    bool calibrate_imu;
+    bool calibrate_mag;
+	std::vector<double> accel;
+	std::vector<double> gyro;
+	std::vector<double> quat;
+	sensor_msgs::Imu msg;
+	msg.header.frame_id = "imu";
+
 	ros::Publisher imu_pub = nh.advertise<sensor_msgs::Imu>("Imu", 10);
 
 	// Setup the IMU
@@ -40,23 +48,11 @@ int main(int argc, char** argv)
 
 	imu.Initialize();
 
-	if ( !imu.InitBNO055() )
-	{
+    if ( !imu.InitBNO055() )
+    {
         ROS_ERROR("Failed to initialize BNO055!");
-		return -1;
-	}
-
-	if ( !imu.AccelGyroCalBNO055() )
-	{
-		ROS_ERROR("Failed to calibrate the Accelerometer and Gyroscope");
-		return -1;
-	}
-
-	if ( !imu.MagCalBNO055() )
-	{
-		ROS_ERROR("Failed to calibrate the magnetometer");
-		return -1;
-	}
+        return -1;
+    }
 
 	if ( !imu.InitBMP280() )
 	{
@@ -64,13 +60,27 @@ int main(int argc, char** argv)
 		return -1;
 	}
 
-	std::vector<int16_t> accel;
-	std::vector<int16_t> gyro;
-	std::vector<int16_t> quat;
-	sensor_msgs::Imu msg;
-	msg.header.frame_id = "imu";
+    if ( nh.hasParam("calibrate_imu") )
+    {
+        nh.getParam("calibrate_imu", calibrate_imu);
+        if ( calibrate_imu )
+        {
+            if ( !imu.AccelGyroCalBNO055() )
+                ROS_ERROR("Failed to calibrate the Accelerometer and Gyroscope");
+        }
+    }
 
-	//ros::Rate loop_rate(100);
+    if ( nh.hasParam("calibrate_mag") )
+    {
+        nh.getParam("calibrate_mag", calibrate_mag);
+        if ( calibrate_mag )
+        {
+            if ( !imu.MagCalBNO055() )
+                ROS_ERROR("Failed to calibrate the magnetometer");
+        }
+    }
+
+	ros::Rate loop_rate(100);
 	while ( ros::ok() )
 	{
 		imu.ReadLIAData(accel);
@@ -93,7 +103,7 @@ int main(int argc, char** argv)
 		imu_pub.publish( msg );
 		ros::spinOnce();
 
-		//loop_rate.sleep();
+		loop_rate.sleep();
 	}
 
 	return 0;

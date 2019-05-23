@@ -828,6 +828,7 @@ void AutoRoverDFRobotGravity10DoF::ReadMagData(vector<double> &destination)
 void AutoRoverDFRobotGravity10DoF::ReadQuatData(vector<double> &destination)
 {
 	vector<uint8_t> rawData(8, 0);  // w/x/y/z quaternion register data stored here
+	double norm;
 
 	destination.clear();
 	destination.resize(4, 0);
@@ -844,6 +845,18 @@ void AutoRoverDFRobotGravity10DoF::ReadQuatData(vector<double> &destination)
 	destination[1] = static_cast<double>((static_cast<int16_t>(rawData[3]) << 8) | rawData[2]) / 16384.0;
 	destination[2] = static_cast<double>((static_cast<int16_t>(rawData[5]) << 8) | rawData[4]) / 16384.0;
 	destination[3] = static_cast<double>((static_cast<int16_t>(rawData[7]) << 8) | rawData[6]) / 16384.0;
+
+	// Normalize
+	norm = std::pow(
+			std::pow(destination[0], 2) +
+			std::pow(destination[1], 2) +
+			std::pow(destination[2], 2) +
+			std::pow(destination[3], 2), 0.5);
+
+	destination[0] /= norm;
+	destination[1] /= norm;
+	destination[2] /= norm;
+	destination[3] /= norm;
 }
 
 void AutoRoverDFRobotGravity10DoF::ReadEulData(vector<double> &destination)

@@ -24,27 +24,27 @@
   </component>
   <component name="CMakeRunConfigurationManager" shouldGenerate="true" shouldDeleteObsolete="true">
     <generated>
-      <config projectName="auto_rover_dfrobot_gravity_10dof" targetName="dynamic_reconfigure_generate_messages_lisp" />
       <config projectName="auto_rover_dfrobot_gravity_10dof" targetName="std_msgs_generate_messages_py" />
+      <config projectName="auto_rover_dfrobot_gravity_10dof" targetName="dynamic_reconfigure_generate_messages_lisp" />
+      <config projectName="auto_rover_dfrobot_gravity_10dof" targetName="gtest_main" />
       <config projectName="auto_rover_dfrobot_gravity_10dof" targetName="sensor_msgs_generate_messages_cpp" />
       <config projectName="auto_rover_dfrobot_gravity_10dof" targetName="sensor_msgs_generate_messages_py" />
-      <config projectName="auto_rover_dfrobot_gravity_10dof" targetName="gtest_main" />
-      <config projectName="auto_rover_dfrobot_gravity_10dof" targetName="roscpp_generate_messages_nodejs" />
       <config projectName="auto_rover_dfrobot_gravity_10dof" targetName="tests" />
+      <config projectName="auto_rover_dfrobot_gravity_10dof" targetName="roscpp_generate_messages_nodejs" />
       <config projectName="auto_rover_dfrobot_gravity_10dof" targetName="geometry_msgs_generate_messages_cpp" />
       <config projectName="auto_rover_dfrobot_gravity_10dof" targetName="rosgraph_msgs_generate_messages_py" />
       <config projectName="auto_rover_dfrobot_gravity_10dof" targetName="roscpp_generate_messages_eus" />
       <config projectName="auto_rover_dfrobot_gravity_10dof" targetName="geometry_msgs_generate_messages_lisp" />
       <config projectName="auto_rover_dfrobot_gravity_10dof" targetName="gtest" />
       <config projectName="auto_rover_dfrobot_gravity_10dof" targetName="std_msgs_generate_messages_lisp" />
-      <config projectName="auto_rover_dfrobot_gravity_10dof" targetName="dynamic_reconfigure_generate_messages_eus" />
       <config projectName="auto_rover_dfrobot_gravity_10dof" targetName="std_msgs_generate_messages_cpp" />
+      <config projectName="auto_rover_dfrobot_gravity_10dof" targetName="dynamic_reconfigure_generate_messages_eus" />
       <config projectName="auto_rover_dfrobot_gravity_10dof" targetName="doxygen" />
       <config projectName="auto_rover_dfrobot_gravity_10dof" targetName="clean_test_results" />
       <config projectName="auto_rover_dfrobot_gravity_10dof" targetName="geometry_msgs_generate_messages_nodejs" />
       <config projectName="auto_rover_dfrobot_gravity_10dof" targetName="sensor_msgs_generate_messages_lisp" />
-      <config projectName="auto_rover_dfrobot_gravity_10dof" targetName="geometry_msgs_generate_messages_py" />
       <config projectName="auto_rover_dfrobot_gravity_10dof" targetName="std_msgs_generate_messages_nodejs" />
+      <config projectName="auto_rover_dfrobot_gravity_10dof" targetName="geometry_msgs_generate_messages_py" />
       <config projectName="auto_rover_dfrobot_gravity_10dof" targetName="dynamic_reconfigure_generate_messages_py" />
       <config projectName="auto_rover_dfrobot_gravity_10dof" targetName="rosgraph_msgs_generate_messages_cpp" />
       <config projectName="auto_rover_dfrobot_gravity_10dof" targetName="run_tests" />
@@ -76,12 +76,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="9e34a1e1-e6da-4cb9-82f6-4a1ee25d9386" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/cfg/gravity_10dof.cfg" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/CMakeLists.txt" beforeDir="false" afterPath="$PROJECT_DIR$/CMakeLists.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/auto_rover_dfrobot_gravity_10dof/I2C.h" beforeDir="false" afterPath="$PROJECT_DIR$/include/auto_rover_dfrobot_gravity_10dof/I2C.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/include/auto_rover_dfrobot_gravity_10dof/auto_rover_dfrobot_gravity_10dof.h" beforeDir="false" afterPath="$PROJECT_DIR$/include/auto_rover_dfrobot_gravity_10dof/auto_rover_dfrobot_gravity_10dof.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/package.xml" beforeDir="false" afterPath="$PROJECT_DIR$/package.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/auto_rover_dfrobot_gravity_10dof.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/auto_rover_dfrobot_gravity_10dof.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/main.cpp" afterDir="false" />
     </list>
@@ -102,8 +98,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/include/auto_rover_dfrobot_gravity_10dof/auto_rover_dfrobot_gravity_10dof.h">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="6705">
-              <caret line="447" column="50" selection-start-line="447" selection-start-column="49" selection-end-line="447" selection-end-column="50" />
+            <state relative-caret-position="420">
+              <caret line="414" column="32" lean-forward="true" selection-start-line="414" selection-start-column="32" selection-end-line="414" selection-end-column="32" />
               <folding>
                 <element signature="e#1143#1162#0" expanded="true" />
               </folding>
@@ -114,8 +110,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/auto_rover_dfrobot_gravity_10dof.cpp">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1485">
-              <caret line="99" column="42" selection-start-line="99" selection-start-column="42" selection-end-line="99" selection-end-column="42" />
+            <state relative-caret-position="686">
+              <caret line="306" column="55" lean-forward="true" selection-start-line="306" selection-start-column="55" selection-end-line="306" selection-end-column="55" />
             </state>
           </provider>
         </entry>
@@ -123,8 +119,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/main.cpp">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="341">
-              <caret line="96" column="27" lean-forward="true" selection-start-line="96" selection-start-column="27" selection-end-line="96" selection-end-column="27" />
+            <state relative-caret-position="851">
+              <caret line="121" column="28" selection-start-line="121" selection-start-column="28" selection-end-line="121" selection-end-column="28" />
               <folding>
                 <element signature="e#1143#1163#0" expanded="true" />
               </folding>
@@ -135,7 +131,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/I2C.cpp">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1950">
+            <state relative-caret-position="1590">
               <caret line="130" column="47" selection-start-line="130" selection-start-column="47" selection-end-line="130" selection-end-column="47" />
             </state>
           </provider>
@@ -144,11 +140,10 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/include/auto_rover_dfrobot_gravity_10dof/I2C.h">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="495">
-              <caret line="33" column="2" selection-start-line="33" selection-start-column="2" selection-end-line="33" selection-end-column="2" />
+            <state relative-caret-position="506">
+              <caret line="53" column="54" lean-forward="true" selection-start-line="53" selection-start-column="54" selection-end-line="53" selection-end-column="54" />
               <folding>
                 <element signature="e#1238#1257#0" expanded="true" />
-                <element signature="e#1370#1396#0" expanded="true" />
                 <element signature="e#1484#1504#0" expanded="true" />
               </folding>
             </state>
@@ -204,10 +199,10 @@
       <list>
         <option value="$PROJECT_DIR$/I2C.h" />
         <option value="$PROJECT_DIR$/src/I2C.cpp" />
+        <option value="$PROJECT_DIR$/CMakeLists.txt" />
+        <option value="$PROJECT_DIR$/include/auto_rover_dfrobot_gravity_10dof/I2C.h" />
         <option value="$PROJECT_DIR$/include/auto_rover_dfrobot_gravity_10dof/auto_rover_dfrobot_gravity_10dof.h" />
         <option value="$PROJECT_DIR$/src/auto_rover_dfrobot_gravity_10dof.cpp" />
-        <option value="$PROJECT_DIR$/include/auto_rover_dfrobot_gravity_10dof/I2C.h" />
-        <option value="$PROJECT_DIR$/CMakeLists.txt" />
         <option value="$PROJECT_DIR$/src/main.cpp" />
       </list>
     </option>
@@ -224,8 +219,8 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
-      <pane id="Scope" />
       <pane id="ProjectPane" />
+      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -535,6 +530,7 @@
       <workItem from="1558067265162" duration="5335000" />
       <workItem from="1558494228131" duration="864000" />
       <workItem from="1558495120133" duration="743000" />
+      <workItem from="1558587483287" duration="3416000" />
     </task>
     <task id="LOCAL-00001" summary="Changing the output data units to m/s^2, rad/s and F.">
       <created>1558068641648</created>
@@ -547,12 +543,13 @@
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="23841000" />
+    <option name="totallyTimeSpent" value="27257000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="-1" y="0" width="1922" height="1053" extended-state="6" />
+    <editor active="true" />
     <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" sideWeight="0.49946293" visible="true" weight="0.16328709" />
+      <window_info content_ui="combo" id="Project" order="0" sideWeight="0.49946293" visible="true" weight="0.16488793" />
       <window_info id="Favorites" order="1" side_tool="true" />
       <window_info anchor="bottom" id="TeamCity" order="0" />
       <window_info anchor="bottom" id="Terminal" order="1" />
@@ -583,42 +580,6 @@
     <option name="LAST_COMMIT_MESSAGE" value="Changing the output data units to m/s^2, rad/s and F." />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/include/auto_rover_dfrobot_gravity_10dof/auto_rover_dfrobot_gravity_10dof.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="6705">
-          <caret line="447" column="50" selection-start-line="447" selection-start-column="49" selection-end-line="447" selection-end-column="50" />
-          <folding>
-            <element signature="e#1143#1162#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/auto_rover_dfrobot_gravity_10dof.cpp">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1485">
-          <caret line="99" column="42" selection-start-line="99" selection-start-column="42" selection-end-line="99" selection-end-column="42" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/I2C.cpp">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1950">
-          <caret line="130" column="47" selection-start-line="130" selection-start-column="47" selection-end-line="130" selection-end-column="47" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/include/auto_rover_dfrobot_gravity_10dof/I2C.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="495">
-          <caret line="33" column="2" selection-start-line="33" selection-start-column="2" selection-end-line="33" selection-end-column="2" />
-          <folding>
-            <element signature="e#1238#1257#0" expanded="true" />
-            <element signature="e#1370#1396#0" expanded="true" />
-            <element signature="e#1484#1504#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/CMakeLists.txt">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="2340">
@@ -626,10 +587,48 @@
         </state>
       </provider>
     </entry>
+    <entry file="file:///usr/include/x86_64-linux-gnu/sys/utsname.h">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/include/auto_rover_dfrobot_gravity_10dof/I2C.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="506">
+          <caret line="53" column="54" lean-forward="true" selection-start-line="53" selection-start-column="54" selection-end-line="53" selection-end-column="54" />
+          <folding>
+            <element signature="e#1238#1257#0" expanded="true" />
+            <element signature="e#1484#1504#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/include/auto_rover_dfrobot_gravity_10dof/auto_rover_dfrobot_gravity_10dof.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="420">
+          <caret line="414" column="32" lean-forward="true" selection-start-line="414" selection-start-column="32" selection-end-line="414" selection-end-column="32" />
+          <folding>
+            <element signature="e#1143#1162#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/I2C.cpp">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1590">
+          <caret line="130" column="47" selection-start-line="130" selection-start-column="47" selection-end-line="130" selection-end-column="47" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/auto_rover_dfrobot_gravity_10dof.cpp">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="686">
+          <caret line="306" column="55" lean-forward="true" selection-start-line="306" selection-start-column="55" selection-end-line="306" selection-end-column="55" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/src/main.cpp">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="341">
-          <caret line="96" column="27" lean-forward="true" selection-start-line="96" selection-start-column="27" selection-end-line="96" selection-end-column="27" />
+        <state relative-caret-position="851">
+          <caret line="121" column="28" selection-start-line="121" selection-start-column="28" selection-end-line="121" selection-end-column="28" />
           <folding>
             <element signature="e#1143#1163#0" expanded="true" />
           </folding>

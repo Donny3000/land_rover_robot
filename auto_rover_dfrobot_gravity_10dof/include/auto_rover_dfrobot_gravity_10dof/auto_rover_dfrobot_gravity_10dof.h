@@ -25,6 +25,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <thread>
 #include <ros/ros.h>
 #include "auto_rover_dfrobot_gravity_10dof/I2C.h"
 
@@ -411,6 +412,8 @@ namespace auto_rover_dfrobot_gravity_10dof
 
 		bool InitBMP280();
 
+		bool BNO055Calibrated();
+
 		bool AccelGyroCalBNO055();
 
 		bool MagCalBNO055();
@@ -444,6 +447,11 @@ namespace auto_rover_dfrobot_gravity_10dof
 		vector<float> accel_bias_;
 		vector<float> gyro_bias_;
 		vector<float> mag_bias_;
+		bool system_calibrated_;
+		bool accel_calibrated_;
+		bool gyro_calibrated_;
+		bool mag_calibrated_;
+		std::thread read_status_thread_;
 		DFRobotGravity10DoFConfig config_;
 		BMP280CompensationParams bmp_comp_params_;
 	};

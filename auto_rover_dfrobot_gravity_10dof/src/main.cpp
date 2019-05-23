@@ -99,25 +99,28 @@ int main(int argc, char** argv)
 	ros::Rate loop_rate(100);
 	while ( ros::ok() )
 	{
-		imu_.ReadLIAData(accel);
-		imu_.ReadGyroData(gyro);
-		imu_.ReadQuatData(quat);
+		if ( imu_.BNO055Calibrated() )
+		{
+			imu_.ReadLIAData(accel);
+			imu_.ReadGyroData(gyro);
+			imu_.ReadQuatData(quat);
 
-		msg.angular_velocity.x = gyro[0];
-		msg.angular_velocity.y = gyro[1];
-		msg.angular_velocity.z = gyro[2];
+			msg.angular_velocity.x = gyro[0];
+			msg.angular_velocity.y = gyro[1];
+			msg.angular_velocity.z = gyro[2];
 
-		msg.linear_acceleration.x = accel[0];
-		msg.linear_acceleration.y = accel[1];
-		msg.linear_acceleration.z = accel[2];
+			msg.linear_acceleration.x = accel[0];
+			msg.linear_acceleration.y = accel[1];
+			msg.linear_acceleration.z = accel[2];
 
-		msg.orientation.w = quat[0];
-		msg.orientation.x = quat[1];
-		msg.orientation.y = quat[2];
-		msg.orientation.z = quat[3];
+			msg.orientation.w = quat[0];
+			msg.orientation.x = quat[1];
+			msg.orientation.y = quat[2];
+			msg.orientation.z = quat[3];
 
-		imu_pub.publish( msg );
-		ros::spinOnce();
+			imu_pub.publish( msg );
+			ros::spinOnce();
+		}
 
 		loop_rate.sleep();
 	}

@@ -34,7 +34,11 @@ AutoRoverDFRobotGravity10DoF::AutoRoverDFRobotGravity10DoF(const uint8_t &bus, c
 		bmp_calib_(BMP280_CALIB_SIZE, 0x00),
 		accel_bias_(BIAS_PARAM_SIZE, 0.0),
 		gyro_bias_(BIAS_PARAM_SIZE, 0.0),
-		mag_bias_(BIAS_PARAM_SIZE, 0.0)
+		mag_bias_(BIAS_PARAM_SIZE, 0.0),
+		system_calibrated_(false),
+		accel_calibrated_(false),
+		gyro_calibrated_(false),
+		mag_calibrated_(false)
 {
 }
 
@@ -270,6 +274,34 @@ bool AutoRoverDFRobotGravity10DoF::InitBMP280()
 	ROS_INFO("BMP280 initialization complete!");
 
 	return true;
+}
+
+bool AutoRoverDFRobotGravity10DoF::BNO055Calibrated()
+{
+	uint8_t status;
+	uint8_t st_sys, st_acc, st_gyr, st_mag;
+
+	if ( !ReadByte(BNO055_CALIB_STAT, status) )
+	{
+		ROS_ERROR("Failed to read BNO055 calibration status");
+		return false;
+	}
+
+	st_sys = (status & 0xD0) >> 6;
+	st_acc = (status & 0x30) >> 4;
+	st_gyr = (status & 0x0D) >> 2;
+	st_mag = status & 0x03;
+
+	if (!st_sys || !st_acc || !st_gyr || !st_mag)
+	{
+		ROS_WARN_THROTTLE(1, "Bad BNO055 Calibration: System %i | Accel: %i | Gyro: %i | Mag: %i", st_sys, st_acc, st_gyr, st_mag);
+		return false;
+	}
+	else
+	{
+		ROS_INFO_THROTTLE(1, "BNO055 Calibration Status: System %i | Accel: %i | Gyro: %i | Mag: %i", st_sys, st_acc, st_gyr, st_mag);
+		return true;
+	}
 }
 
 bool AutoRoverDFRobotGravity10DoF::AccelGyroCalBNO055()

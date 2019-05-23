@@ -32,11 +32,32 @@
 // Setup the IMU
 auto_rover_dfrobot_gravity_10dof::AutoRoverDFRobotGravity10DoF imu_(1, 0x28);
 
+bool initialize()
+{
+	imu_.Initialize();
+
+	if ( !imu_.InitBNO055() )
+	{
+		ROS_ERROR("Failed to initialize BNO055!");
+		return false;
+	}
+
+	if ( !imu_.InitBMP280() )
+	{
+		ROS_ERROR("Failed to initialize BMP280!");
+		return false;
+	}
+
+	return true;
+}
+
 void dyn_config_cb(auto_rover_dfrobot_gravity_10dof::Gravity10DoFConfig &config, uint32_t level)
 {
 	if ( config.reset )
 	{
 		imu_.Reset();
+
+		!initialize();
 	}
 }
 
@@ -56,19 +77,8 @@ int main(int argc, char** argv)
 
 	ros::Publisher imu_pub = nh.advertise<sensor_msgs::Imu>("Imu", 10);
 
-	imu_.Initialize();
-
-    if ( !imu_.InitBNO055() )
-    {
-        ROS_ERROR("Failed to initialize BNO055!");
-        return -1;
-    }
-
-	if ( !imu_.InitBMP280() )
-	{
-        ROS_ERROR("Failed to initialize BMP280!");
-		return -1;
-	}
+    if ( !initialize() )
+    	return -1;
 
     if ( nh.hasParam("calibrate_imu") )
     {

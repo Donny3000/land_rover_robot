@@ -820,9 +820,9 @@ void AutoRoverDFRobotGravity10DoF::ReadMagData(vector<double> &destination)
 	}
 
 	// Turn the MSB and LSB into a signed 16-bit value
-	destination[0] = static_cast<double>((static_cast<int16_t>(rawData[1]) << 8) | rawData[0]) / 1.6;
-	destination[1] = static_cast<double>((static_cast<int16_t>(rawData[3]) << 8) | rawData[2]) / 1.6;
-	destination[2] = static_cast<double>((static_cast<int16_t>(rawData[5]) << 8) | rawData[4]) / 1.6;
+	destination[0] = static_cast<double>((static_cast<int16_t>(rawData[1]) << 8) | rawData[0]) / 16.0;
+	destination[1] = static_cast<double>((static_cast<int16_t>(rawData[3]) << 8) | rawData[2]) / 16.0;
+	destination[2] = static_cast<double>((static_cast<int16_t>(rawData[5]) << 8) | rawData[4]) / 16.0;
 }
 
 void AutoRoverDFRobotGravity10DoF::ReadQuatData(vector<double> &destination)

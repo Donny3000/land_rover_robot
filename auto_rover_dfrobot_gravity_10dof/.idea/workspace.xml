@@ -76,10 +76,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="9e34a1e1-e6da-4cb9-82f6-4a1ee25d9386" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/auto_rover_dfrobot_gravity_10dof/auto_rover_dfrobot_gravity_10dof.h" beforeDir="false" afterPath="$PROJECT_DIR$/include/auto_rover_dfrobot_gravity_10dof/auto_rover_dfrobot_gravity_10dof.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/auto_rover_dfrobot_gravity_10dof.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/auto_rover_dfrobot_gravity_10dof.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/main.cpp" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/cmake-build-debug/" />
     <ignored path="$PROJECT_DIR$/../../../build/" />
@@ -107,16 +104,16 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/auto_rover_dfrobot_gravity_10dof.cpp">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="686">
-              <caret line="306" column="55" lean-forward="true" selection-start-line="306" selection-start-column="55" selection-end-line="306" selection-end-column="55" />
+            <state relative-caret-position="431">
+              <caret line="883" column="103" selection-start-line="883" selection-start-column="102" selection-end-line="883" selection-end-column="103" />
             </state>
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/main.cpp">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="851">
@@ -202,8 +199,8 @@
         <option value="$PROJECT_DIR$/CMakeLists.txt" />
         <option value="$PROJECT_DIR$/include/auto_rover_dfrobot_gravity_10dof/I2C.h" />
         <option value="$PROJECT_DIR$/include/auto_rover_dfrobot_gravity_10dof/auto_rover_dfrobot_gravity_10dof.h" />
-        <option value="$PROJECT_DIR$/src/auto_rover_dfrobot_gravity_10dof.cpp" />
         <option value="$PROJECT_DIR$/src/main.cpp" />
+        <option value="$PROJECT_DIR$/src/auto_rover_dfrobot_gravity_10dof.cpp" />
       </list>
     </option>
   </component>
@@ -530,7 +527,7 @@
       <workItem from="1558067265162" duration="5335000" />
       <workItem from="1558494228131" duration="864000" />
       <workItem from="1558495120133" duration="743000" />
-      <workItem from="1558587483287" duration="3416000" />
+      <workItem from="1558587483287" duration="4543000" />
     </task>
     <task id="LOCAL-00001" summary="Changing the output data units to m/s^2, rad/s and F.">
       <created>1558068641648</created>
@@ -543,7 +540,7 @@
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="27257000" />
+    <option name="totallyTimeSpent" value="28384000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="-1" y="0" width="1922" height="1053" extended-state="6" />
@@ -618,13 +615,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/auto_rover_dfrobot_gravity_10dof.cpp">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="686">
-          <caret line="306" column="55" lean-forward="true" selection-start-line="306" selection-start-column="55" selection-end-line="306" selection-end-column="55" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/main.cpp">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="851">
@@ -632,6 +622,13 @@
           <folding>
             <element signature="e#1143#1163#0" expanded="true" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/auto_rover_dfrobot_gravity_10dof.cpp">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="431">
+          <caret line="883" column="103" selection-start-line="883" selection-start-column="102" selection-end-line="883" selection-end-column="103" />
         </state>
       </provider>
     </entry>

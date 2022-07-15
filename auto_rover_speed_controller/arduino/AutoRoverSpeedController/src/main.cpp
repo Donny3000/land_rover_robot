@@ -1,146 +1,146 @@
-#include <Servo.h>
-#include <Wire.h>
+#include <Arduino.h>
+#include <PWMServo.h>
 #include <DualVNH5019MotorShield.h>
+#include <micro_ros_platformio.h>
 
-//#define USE_USBCON
-#include <ros.h>
-#include <geometry_msgs/Twist.h>
-#include <auto_rover_speed_controller/Encoders.h>
+#include <rcl/rcl.h>
+#include <rcl/error_handling.h>
+#include <rclc/rclc.h>
+#include <rclc/executor.h>
 
+#include <std_msgs/msg/int32.h>
+#include <geometry_msgs/msg/twist.h>
+
+/* Definitions ----------------------------------------------------------->>>*/
 #define SPEED_MAX          400
+#define WHEELBASE          5.125 // Inches from center of axle
 #define REAR_LEFT_ENCODER  18
 #define REAR_RIGHT_ENCODER 19
-#define FRONT_WHEEL_SERVO  3
-#define REAR_WHEEL_SERVO   11
+#define THROTTLE_SERVO     3
+#define STEERING_SERVO     5
+#define AUX_SERVO        
 #define SERVO_OFFSET       90
+#define BOUND_SPEED(s)   { max(-SPEED_MAX, min(SPEED_MAX, s)) }
+#define RCCHECK(fn)      { rcl_ret_t temp_rc = fn; if((temp_rc != RCL_RET_OK)){error_loop();}}
+#define RCSOFTCHECK(fn)  { rcl_ret_t temp_rc = fn; if((temp_rc != RCL_RET_OK)){}}
+/*------------------------------------------------------------------------<<<*/
 
-unsigned long start_time_, stop_time_;
+/* Function Prototypes ---------------------------------------------------<<<*/
+void commandVelocityCb(const void * cmd_vel);
+/*------------------------------------------------------------------------>>>*/
 
-// Configure library with pins as remapped for single-channel operation
-// this lets the single motor be controlled as if it were "motor 1"
-DualVNH5019MotorShield md(2, 7, 9, 6, A0, 2, 7, 9, 12, A1);
+// Create a servo object for steering and throttle servos
+PWMServo servo_throt_, servo_steer_, servo_aux_;
+DualVNH5019MotorShield md_(2, 7, 9, 6, A0, 2, 7, 9, 12, A1);
 
-// Setup the servo for front_wheels_
-Servo front_wheels_;
-Servo rear_wheels_;
+// RC Receiver PWM read Setup
+volatile uint16_t ch_throttle_, ch_steering_, ch_aux_;
 
-ros::NodeHandle nh;
+// Setup the diagnostic publisher and and command twist subscriber
+rcl_publisher_t             diagnostic_pub_;
+std_msgs__msg__Int32        diagnostic_msg_;
+rcl_subscription_t          command_velocity_sub_;
+geometry_msgs__msg__Twist   command_velocity_msg_;
 
-// Wheel Encoder Setup
-volatile uint16_t rear_left_ticks_, rear_right_ticks_;
-volatile uint16_t front_left_ticks_, front_right_ticks_;
+rclc_executor_t             executor_;
+rclc_support_t              support_;
+rcl_allocator_t             allocator_;
+rcl_node_t                  node_;
+rcl_timer_t                 timer_;
 
-// ISRs
-void isr_rear_left_encoder();
-void isr_rear_right_encoder();
+void error_loop(){
+  while(1){
+    delay(100);
+  }
+}
 
-void attachEncoders();
-void detachEncoders();
+void timer_callback(rcl_timer_t * timer, int64_t last_call_time)
+{  
+  RCLC_UNUSED(last_call_time);
+  if (timer != NULL) {
+    RCSOFTCHECK(rcl_publish(&diagnostic_pub_, &diagnostic_msg_, NULL));
+    diagnostic_msg_.data++;
+  }
+}
 
-// ROS Subscriber to read joystick command
-void joystickCb(const geometry_msgs::Twist& vel);
-ros::Subscriber<geometry_msgs::Twist> sub("auto_rover/cmd_vel", &joystickCb);
-
-auto_rover_speed_controller::Encoders encoder_;
-ros::Publisher encoder_pub_("auto_rover/encoders", &encoder_);
-
-void setup()
-{
-  // Setup the LED for diagnostics
-  pinMode(LED_BUILTIN, OUTPUT);
-
-  // Initialize the encoder ticks
-  rear_left_ticks_ = rear_right_ticks_ = 0;
-  front_left_ticks_ = front_right_ticks_ = 0;
-
-  // Setup the servo
-  front_wheels_.attach(FRONT_WHEEL_SERVO);
-  rear_wheels_.attach(REAR_WHEEL_SERVO);
-
-  // Clear both motor encoders
-  pinMode(REAR_LEFT_ENCODER, INPUT_PULLUP);
-  pinMode(REAR_RIGHT_ENCODER, INPUT_PULLUP);
-  attachEncoders();
+void setup() {
+  // Configure serial transport
+  Serial.begin(115200);
+  set_microros_serial_transports(Serial);
+  
+  delay(2000);
 
   // Setup Motor Controller
-  md.init();
+  md_.init();
 
-  // Setup ROS
-  nh.initNode();
-  nh.subscribe(sub);
-  nh.advertise(encoder_pub_);
+  allocator_ = rcl_get_default_allocator();
+
+  // create init_options
+  RCCHECK(rclc_support_init(&support_, 0, NULL, &allocator_));
+
+  // create node
+  RCCHECK(rclc_node_init_default(&node_, "micro_ros_arduino_node", "", &support_));
+
+  // create publisher
+  RCCHECK(rclc_publisher_init_default(
+    &diagnostic_pub_,
+    &node_,
+    ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Int32),
+    "diagnostics")
+  );
+  
+  // Create subscriber
+  RCCHECK(rclc_subscription_init_default(
+    &command_velocity_sub_,
+    &node_,
+    ROSIDL_GET_MSG_TYPE_SUPPORT(geometry_msgs, msg, Twist),
+    "command_velocity")
+  );
+
+  // create timer,
+  const unsigned int timer_timeout = 1000;
+  RCCHECK(rclc_timer_init_default(
+    &timer_,
+    &support_,
+    RCL_MS_TO_NS(timer_timeout),
+    timer_callback)
+  );
+
+  // create executor
+  RCCHECK(rclc_executor_init            (&executor_, &support_.context, 1, &allocator_));
+  RCCHECK(rclc_executor_add_timer       (&executor_, &timer_));
+  RCCHECK(rclc_executor_add_subscription(&executor_, &command_velocity_sub_, &command_velocity_msg_, &commandVelocityCb, ON_NEW_DATA));
+
+  diagnostic_msg_.data          = 0;
+  command_velocity_msg_.linear.x = command_velocity_msg_.angular.x = 0;
+  command_velocity_msg_.linear.y = command_velocity_msg_.angular.y = 0;
+  command_velocity_msg_.linear.z = command_velocity_msg_.angular.z = 0;
 }
 
 void loop()
 {
-  start_time_ = millis();
-  delay(10);
-
-  if (!nh.connected())
-  {
-    digitalWrite(LED_BUILTIN, HIGH);
-    delay(500);
-    digitalWrite(LED_BUILTIN, LOW);
-    delay(500);
-  }
-  else
-  {
-    // Safeguard calculations and publishing of the message
-    detachEncoders();
-
-    stop_time_ = millis() - start_time_;
-    encoder_.rear_left_speed_ = static_cast<float>(rear_left_ticks_) / static_cast<float>(stop_time_);
-    encoder_.rear_right_speed_ = static_cast<float>(rear_right_ticks_) / static_cast<float>(stop_time_);
-    rear_left_ticks_ = rear_right_ticks_ = 0;
-    encoder_pub_.publish( &encoder_ );
-
-    attachEncoders();
-  }
-
-  nh.spinOnce();
-}
-
-void isr_rear_left_encoder()
-{
-  rear_left_ticks_++;
-}
-
-void isr_rear_right_encoder()
-{
-  rear_right_ticks_++;
-}
-
-void attachEncoders()
-{
-  attachInterrupt(digitalPinToInterrupt(REAR_LEFT_ENCODER), isr_rear_left_encoder, CHANGE);
-  attachInterrupt(digitalPinToInterrupt(REAR_RIGHT_ENCODER), isr_rear_right_encoder, CHANGE);
-}
-
-void detachEncoders()
-{
-  detachInterrupt(digitalPinToInterrupt(REAR_LEFT_ENCODER));
-  detachInterrupt(digitalPinToInterrupt(REAR_RIGHT_ENCODER));
+  delay(100);
+  RCSOFTCHECK(rclc_executor_spin_some(&executor_, RCL_MS_TO_NS(100)));
 }
 
 // ROS Subscriber to read joystick command
-void joystickCb(const geometry_msgs::Twist& vel)
+void commandVelocityCb(const void * msg)
 {
-  static int16_t prev_speed = 0, prev_steer = 0;
-
-  int16_t cur_speed = static_cast<int16_t>(vel.linear.x);
-  int16_t cur_steer = static_cast<int16_t>(vel.angular.z) + SERVO_OFFSET;
-
-  // The the linear portion for the motor speed
-  if (cur_speed != prev_speed)
+  const geometry_msgs__msg__Twist * cmd_vel = \
+    static_cast<const geometry_msgs__msg__Twist *>(msg);
+  int16_t cmd_speed   = BOUND_SPEED(static_cast<int16_t>(cmd_vel->linear.x));
+  int16_t delta_speed = static_cast<int16_t>(WHEELBASE * tanf(cmd_vel->angular.z));
+  
+  // Turning left
+  if (cmd_vel->angular.z > 0)
   {
-    md.setM1Speed(cur_speed);
-    prev_speed = cur_speed;
+    md_.setM1Speed(cmd_speed);
+    md_.setM2Speed(BOUND_SPEED(cmd_speed - delta_speed));
   }
-
-  if (cur_steer != prev_steer)
+  // Turning right
+  else
   {
-    front_wheels_.write(cur_steer);
-    rear_wheels_.write(-cur_steer);
-    prev_steer = cur_steer;
+    md_.setM2Speed(cmd_speed);
+    md_.setM1Speed(BOUND_SPEED(cmd_speed - delta_speed));
   }
 }

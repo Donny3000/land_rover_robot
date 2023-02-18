@@ -7,7 +7,7 @@
   <!-- One maintainer tag required, multiple allowed, one person per tag -->
   <!-- Example:  -->
   <!-- <maintainer email="jane.doe@example.com">Jane Doe</maintainer> -->
-  <maintainer email="dpoole30@gatech.edu">Donald R. Poole, Jr.</maintainer>
+  <maintainer email="donny3000@gmail.com">Donald R. Poole, Jr.</maintainer>
 
 
   <!-- One license tag required, multiple allowed, one license per tag -->
@@ -25,7 +25,7 @@
   <!-- Author tags are optional, multiple are allowed, one per tag -->
   <!-- Authors do not have to be maintainers, but could be -->
   <!-- Example: -->
-  <author email="dpoole30@gatech.edu">Donald R. Poole, Jr.</author>
+  <author email="donny3000@gmail.com">Donald R. Poole, Jr.</author>
 
 
   <!-- The *depend tags are used to specify dependencies -->
@@ -49,13 +49,13 @@
   <!-- Use doc_depend for packages you need only for building documentation: -->
   <!--   <doc_depend>doxygen</doc_depend> -->
   <buildtool_depend>catkin</buildtool_depend>
-  <build_depend>ps3joy</build_depend>
+  <!--<build_depend>ps3joy</build_depend>-->
   <build_depend>roscpp</build_depend>
   <build_depend>geometry_msgs</build_depend>
-  <build_export_depend>ps3joy</build_export_depend>
+  <!--<build_export_depend>ps3joy</build_export_depend>-->
   <build_export_depend>roscpp</build_export_depend>
   <build_export_depend>geometry_msgs</build_export_depend>
-  <exec_depend>ps3joy</exec_depend>
+  <!--<exec_depend>ps3joy</exec_depend>-->
   <exec_depend>roscpp</exec_depend>
   <exec_depend>geometry_msgs</exec_depend>
 

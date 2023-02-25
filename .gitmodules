@@ -1,8 +1,8 @@
-[submodule "auto_rover_speed_controller/arduino/AutoRoverSpeedController/lib/DFRobot_BNO055"]
-	path = auto_rover_speed_controller/arduino/AutoRoverSpeedController/lib/DFRobot_BNO055
+[submodule "auto_rover_speed_controller/firmware/lib/DFRobot_BNO055"]
+	path = auto_rover_speed_controller/firmware/lib/DFRobot_BNO055
 	url = https://github.com/DFRobot/DFRobot_BNO055.git
 	branch = master
-[submodule "auto_rover_speed_controller/arduino/AutoRoverSpeedController/lib/DFRobot_BMP280"]
-	path = auto_rover_speed_controller/arduino/AutoRoverSpeedController/lib/DFRobot_BMP280
+[submodule "auto_rover_speed_controller/firmware/lib/DFRobot_BMP280"]
+	path = auto_rover_speed_controller/firmware/lib/DFRobot_BMP280
 	url = https://github.com/DFRobot/DFRobot_BMP280.git
 	branch = master

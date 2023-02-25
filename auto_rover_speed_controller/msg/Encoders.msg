@@ -1,4 +1,0 @@
-float32 rear_left_speed_
-float32 rear_right_speed_
-float32 front_left_speed_
-float32 front_right_speed_

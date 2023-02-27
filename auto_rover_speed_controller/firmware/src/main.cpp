@@ -1,138 +1,62 @@
+#include <ros.h>
 #include <Arduino.h>
 #include <PWMServo.h>
+#include <Encoder.h>
 #include <DualVNH5019MotorShield.h>
-#include <micro_ros_platformio.h>
 
-#include <rcl/rcl.h>
-#include <rcl/error_handling.h>
-#include <rclc/rclc.h>
-#include <rclc/executor.h>
-
-#include <std_msgs/msg/int32.h>
-#include <geometry_msgs/msg/twist.h>
+#include <std_msgs/Int32.h>
+#include <geometry_msgs/Twist.h>
+#include <auto_rover_speed_controller/HouseKeeping.h>
 
 /* Definitions ----------------------------------------------------------->>>*/
+#define CTRL_LOOP_PERIOD   1000 // microseconds
 #define SPEED_MAX          400
 #define WHEELBASE          5.125 // Inches from center of axle
-#define REAR_LEFT_ENCODER  18
-#define REAR_RIGHT_ENCODER 19
-#define THROTTLE_SERVO     3
-#define STEERING_SERVO     5
-#define AUX_SERVO        
+#define LEFT_ENCODER_A     3
+#define LEFT_ENCODER_B     5
+#define RIGHT_ENCODER_A    11
+#define RIGHT_ENCODER_B    13
+//#define THROTTLE_SERVO     3
+//#define STEERING_SERVO     5
+//#define AUX_SERVO        
 #define SERVO_OFFSET       90
-#define BOUND_SPEED(s)   { max(-SPEED_MAX, min(SPEED_MAX, s)) }
-#define RCCHECK(fn)      { rcl_ret_t temp_rc = fn; if((temp_rc != RCL_RET_OK)){error_loop();}}
-#define RCSOFTCHECK(fn)  { rcl_ret_t temp_rc = fn; if((temp_rc != RCL_RET_OK)){}}
+#define BOUND_SPEED(s)   { max<int16_t, int16_t>(-SPEED_MAX, min<int16_t, int16_t>(SPEED_MAX, s)) }
 /*------------------------------------------------------------------------<<<*/
 
-/* Function Prototypes ---------------------------------------------------<<<*/
-void commandVelocityCb(const void * cmd_vel);
+/* Globals --------------------------------------------------------------->>>*/
+/*------------------------------------------------------------------------<<<*/
+
+/* ROS Variables ---------------------------------------------------------<<<*/
+ros::NodeHandle nh_;
+auto_rover_speed_controller::HouseKeeping hk_;
+ros::Publisher hk_pub_("motor_hk", &hk_);
 /*------------------------------------------------------------------------>>>*/
 
+/* Third-Party Library Instantiations ------------------------------------>>>*/
 // Create a servo object for steering and throttle servos
 PWMServo servo_throt_, servo_steer_, servo_aux_;
+
+// Left/Right motor encoders
+//   Best Performance: both pins have interrupt capability
+//   Good Performance: only the first pin has interrupt capability
+//   Low Performance:  neither pin has interrupt capability
+Encoder          left_enc_ (LEFT_ENCODER_A , LEFT_ENCODER_B);
+Encoder          right_enc_(RIGHT_ENCODER_A, RIGHT_ENCODER_B);
+
 DualVNH5019MotorShield md_(2, 7, 9, 6, A0, 2, 7, 9, 12, A1);
 
 // RC Receiver PWM read Setup
 volatile uint16_t ch_throttle_, ch_steering_, ch_aux_;
+/*---------------------------------------------------------------------------*/
 
-// Setup the diagnostic publisher and and command twist subscriber
-rcl_publisher_t             diagnostic_pub_;
-std_msgs__msg__Int32        diagnostic_msg_;
-rcl_subscription_t          command_velocity_sub_;
-geometry_msgs__msg__Twist   command_velocity_msg_;
-
-rclc_executor_t             executor_;
-rclc_support_t              support_;
-rcl_allocator_t             allocator_;
-rcl_node_t                  node_;
-rcl_timer_t                 timer_;
-
-void error_loop(){
-  while(1){
-    delay(100);
-  }
-}
-
-void timer_callback(rcl_timer_t * timer, int64_t last_call_time)
-{  
-  RCLC_UNUSED(last_call_time);
-  if (timer != NULL) {
-    RCSOFTCHECK(rcl_publish(&diagnostic_pub_, &diagnostic_msg_, NULL));
-    diagnostic_msg_.data++;
-  }
-}
-
-void setup() {
-  // Configure serial transport
-  Serial.begin(115200);
-  set_microros_serial_transports(Serial);
-  
-  delay(2000);
-
-  // Setup Motor Controller
-  md_.init();
-
-  allocator_ = rcl_get_default_allocator();
-
-  // create init_options
-  RCCHECK(rclc_support_init(&support_, 0, NULL, &allocator_));
-
-  // create node
-  RCCHECK(rclc_node_init_default(&node_, "micro_ros_arduino_node", "", &support_));
-
-  // create publisher
-  RCCHECK(rclc_publisher_init_default(
-    &diagnostic_pub_,
-    &node_,
-    ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Int32),
-    "diagnostics")
-  );
-  
-  // Create subscriber
-  RCCHECK(rclc_subscription_init_default(
-    &command_velocity_sub_,
-    &node_,
-    ROSIDL_GET_MSG_TYPE_SUPPORT(geometry_msgs, msg, Twist),
-    "command_velocity")
-  );
-
-  // create timer,
-  const unsigned int timer_timeout = 1000;
-  RCCHECK(rclc_timer_init_default(
-    &timer_,
-    &support_,
-    RCL_MS_TO_NS(timer_timeout),
-    timer_callback)
-  );
-
-  // create executor
-  RCCHECK(rclc_executor_init            (&executor_, &support_.context, 1, &allocator_));
-  RCCHECK(rclc_executor_add_timer       (&executor_, &timer_));
-  RCCHECK(rclc_executor_add_subscription(&executor_, &command_velocity_sub_, &command_velocity_msg_, &commandVelocityCb, ON_NEW_DATA));
-
-  diagnostic_msg_.data          = 0;
-  command_velocity_msg_.linear.x = command_velocity_msg_.angular.x = 0;
-  command_velocity_msg_.linear.y = command_velocity_msg_.angular.y = 0;
-  command_velocity_msg_.linear.z = command_velocity_msg_.angular.z = 0;
-}
-
-void loop()
+/* ROS Subscribers -------------------------------------------------------<<<*/
+void commandVelocityCb(const geometry_msgs::Twist& msg)
 {
-  delay(100);
-  RCSOFTCHECK(rclc_executor_spin_some(&executor_, RCL_MS_TO_NS(100)));
-}
-
-// ROS Subscriber to read joystick command
-void commandVelocityCb(const void * msg)
-{
-  const geometry_msgs__msg__Twist * cmd_vel = \
-    static_cast<const geometry_msgs__msg__Twist *>(msg);
-  int16_t cmd_speed   = BOUND_SPEED(static_cast<int16_t>(cmd_vel->linear.x));
-  int16_t delta_speed = static_cast<int16_t>(WHEELBASE * tanf(cmd_vel->angular.z));
+  int16_t cmd_speed   = BOUND_SPEED(static_cast<int16_t>(msg.linear.x));
+  int16_t delta_speed = static_cast<int16_t>(WHEELBASE * tanf(msg.angular.z));
   
   // Turning left
-  if (cmd_vel->angular.z > 0)
+  if (msg.angular.z > 0)
   {
     md_.setM1Speed(cmd_speed);
     md_.setM2Speed(BOUND_SPEED(cmd_speed - delta_speed));
@@ -142,5 +66,47 @@ void commandVelocityCb(const void * msg)
   {
     md_.setM2Speed(cmd_speed);
     md_.setM1Speed(BOUND_SPEED(cmd_speed - delta_speed));
+  }
+}
+ros::Subscriber<geometry_msgs::Twist> sub("cmd_vel", &commandVelocityCb);
+/*------------------------------------------------------------------------>>>*/
+
+void update_hk()
+{
+  hk_.left_motor_current_  = md_.getM1CurrentMilliamps();
+  hk_.right_motor_current_ = md_.getM2CurrentMilliamps();
+  hk_.left_motor_fault_    = md_.getM1Fault();
+  hk_.right_motor_fault_   = md_.getM2Fault();
+  hk_.left_motor_pos_      = left_enc_.read();
+  hk_.right_motor_pos_     = right_enc_.read();
+}
+
+void setup()
+{
+  // Initialize ROS rosserial node
+  nh_.initNode();
+
+  // Advertise our housekeeping publisher
+  nh_.advertise(hk_pub_);
+
+  // Setup Motor Controller
+  md_.init();
+}
+
+void loop()
+{
+  static uint32_t prevMicro = 0, currMicro;
+
+  // Keep the control loop running at 1kHz
+  currMicro = micros();
+  if ((currMicro - prevMicro) >= CTRL_LOOP_PERIOD)
+  {
+    prevMicro = currMicro;
+
+    // Publish the house keeping packet
+    update_hk();
+    hk_pub_.publish(&hk_);
+
+    nh_.spinOnce();
   }
 }

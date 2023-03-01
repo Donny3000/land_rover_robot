@@ -145,7 +145,7 @@ include_directories(
 
 ## Declare a C++ library
 add_library(${PROJECT_NAME}_hw_if
-  #src/${PROJECT_NAME}_hw_if.cpp
+  src/${PROJECT_NAME}_hw_if.cpp
   src/pid.cpp
 )
 

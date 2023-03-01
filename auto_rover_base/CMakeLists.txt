@@ -7,24 +7,26 @@ project(auto_rover_base)
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
-find_package(catkin REQUIRED COMPONENTS
-  auto_rover_msgs
-  control_toolbox
-  controller_manager
-  diagnostic_updater
-  diff_drive_controller
-  dynamic_reconfigure
-  hardware_interface
-  roscpp
-  rosparam_shortcuts
-  sensor_msgs
-  urdf
+find_package(catkin REQUIRED
+  COMPONENTS
+    auto_rover_msgs
+    control_toolbox
+    controller_manager
+    diagnostic_updater
+    diff_drive_controller
+    dynamic_reconfigure
+    hardware_interface
+    roscpp
+    rosparam_shortcuts
+    sensor_msgs
+    urdf
 )
 
 ## System dependencies are found with CMake's conventions
-find_package(Boost REQUIRED COMPONENTS
-  system
-  thread
+find_package(Boost REQUIRED
+  COMPONENTS
+    system
+    thread
 )
 
 
@@ -113,9 +115,20 @@ generate_dynamic_reconfigure_options(
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-#  INCLUDE_DIRS include
-#  LIBRARIES auto_rover_base
-#  CATKIN_DEPENDS auto_rover_msgs control_toolbox controller_manager diagnostic_updater diff_drive_controller dynamic_reconfigure hardware_interface roscpp rosparam_shortcuts sensor_msgs urdf
+  INCLUDE_DIRS include
+  LIBRARIES auto_rover_base_hw_if
+  CATKIN_DEPENDS
+    auto_rover_msgs
+    control_toolbox
+    controller_manager
+    diagnostic_updater
+    diff_drive_controller
+    dynamic_reconfigure
+    hardware_interface
+    roscpp
+    rosparam_shortcuts
+    sensor_msgs
+    urdf
 #  DEPENDS system_lib
 )
 
@@ -131,14 +144,15 @@ include_directories(
 )
 
 ## Declare a C++ library
-# add_library(${PROJECT_NAME}
-#   src/${PROJECT_NAME}/auto_rover_base.cpp
-# )
+add_library(${PROJECT_NAME}_hw_if
+  #src/${PROJECT_NAME}_hw_if.cpp
+  src/pid.cpp
+)
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
 ## either from message generation or dynamic reconfigure
-# add_dependencies(${PROJECT_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(${PROJECT_NAME}_hw_if ${${PROJECT_NAME}_hw_if_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context

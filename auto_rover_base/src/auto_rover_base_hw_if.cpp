@@ -27,6 +27,7 @@ namespace auto_rover_base
         // Load rosparams
         ros::NodeHandle rpnh(nh_, name_);
         std::size_t error = 0;
+
         // Code API of rosparam_shortcuts:
         // http://docs.ros.org/en/noetic/api/rosparam_shortcuts/html/namespacerosparam__shortcuts.html#aa6536fe0130903960b1de4872df68d5d
         error += !rosparam_shortcuts::get(name_, rpnh, "joints", joint_names_);
@@ -46,7 +47,6 @@ namespace auto_rover_base
         // ros_control RobotHW needs velocity in rad/s but in the config its given in m/s
         max_velocity_ = linearToAngular(max_velocity_);
 
-
         ROS_INFO_STREAM("mobile_base_controller/wheel_radius: " << wheel_radius_);
         ROS_INFO_STREAM("mobile_base_controller/linear/x/max_velocity: " << max_velocity_);
         ROS_INFO_STREAM("encoder_resolution: " << encoder_resolution_);
@@ -59,11 +59,12 @@ namespace auto_rover_base
         pub_left_motor_value_ = nh_.advertise<std_msgs::Int32>("motor_left", 10);
         pub_right_motor_value_ = nh_.advertise<std_msgs::Int32>("motor_right", 10);
 
-        //Setup publisher for angular wheel joint velocity commands
+        // Setup publisher for angular wheel joint velocity commands
         pub_wheel_cmd_velocities_ = nh_.advertise<auto_rover_msgs::WheelsCmdStamped>("wheel_cmd_velocities", 10);
 
         // Setup publisher to reset wheel encoders (used during first launch of the hardware interface)
         pub_reset_encoders_ = nh_.advertise<std_msgs::Empty>("reset", 10);
+        
         // Setup subscriber for the wheel encoders
         sub_encoder_ticks_ = nh_.subscribe("encoder_ticks", 10, &AutoRoverHWInterface::encoderTicksCallback, this);
         sub_measured_joint_states_ = nh_.subscribe("measured_joint_states", 10, &AutoRoverHWInterface::measuredJointStatesCallback, this);

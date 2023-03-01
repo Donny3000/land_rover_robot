@@ -80,9 +80,10 @@ namespace auto_rover_base
     {
         ROS_INFO("Initializing AutoRover Hardware Interface ...");
         num_joints_ = joint_names_.size();
-        ROS_INFO("Number of joints: %d", (int)num_joints_);
+
+        ROS_INFO("Number of joints: %d", static_cast<int>(num_joints_));
         std::array<std::string, NUM_JOINTS> motor_names = {"left_motor", "right_motor"};
-        for (unsigned int i = 0; i < num_joints_; i++)
+        for (size_t i = 0; i < num_joints_; i++)
         {
             // Create a JointStateHandle for each joint and register them with the 
             // JointStateInterface.
@@ -115,6 +116,7 @@ namespace auto_rover_base
             std::string pid_namespace = "pid/" + motor_names[i];
             ROS_INFO_STREAM("pid namespace: " << pid_namespace);
             ros::NodeHandle nh(root_nh, pid_namespace);
+            
             // TODO implement builder pattern to initialize values otherwise it is hard to see which parameter is what.
             pids_[i].init(nh, 0.8, 0.35, 0.5, 0.01, 3.5, -3.5, false, max_velocity_, -max_velocity_);
             pids_[i].setOutputLimits(-max_velocity_, max_velocity_);

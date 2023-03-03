@@ -8,6 +8,9 @@
 		"files.associations": {
 			"array": "cpp",
 			"string": "cpp"
-		}
+		},
+		"cSpell.words": [
+			"Pololu"
+		]
 	}
 }

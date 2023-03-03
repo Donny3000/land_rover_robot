@@ -1,6 +1,9 @@
 #ifndef AUTO_ROVER_BASE_CONFIG_H
 #define AUTO_ROVER_BASE_CONFIG_H
 
+#define NUM_OF_JOINTS                    2
+#define E_STOP_COMMAND_RECEIVED_DURATION 5 // Stop motors if no command was received after this amount of seconds
+
 // Encoder Pins
 #define ENCODER_LEFT_A                   3
 #define ENCODER_LEFT_B                   5
@@ -28,8 +31,6 @@
 #define UPDATE_RATE_CONTROL              20
 #define UPDATE_RATE_IMU                  1
 #define UPDATE_RATE_DEBUG                5
-
-#define E_STOP_COMMAND_RECEIVED_DURATION 5 // Stop motors if no command was received after this amount of seconds
 
 #define PWM_MAX                          pow(2, PWM_BITS) - 1
 #define PWM_MIN                          -(PWM_MAX)

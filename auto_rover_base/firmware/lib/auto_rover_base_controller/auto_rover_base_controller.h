@@ -432,10 +432,10 @@ void auto_rover_base::BaseController<TMotorController, TMotorDriver>::setup()
     // For rosserial to work it is required to reserve the memory using malloc
     // and setting the *_length member appropriately.
     // http://wiki.ros.org/rosserial/Overview/Limitations#Arrays
-    msg_measured_joint_states_.position = (float*)malloc(sizeof(float) * 2);
-    msg_measured_joint_states_.position_length = 2;
-    msg_measured_joint_states_.velocity = (float*)malloc(sizeof(float) * 2);
-    msg_measured_joint_states_.velocity_length = 2;
+    msg_measured_joint_states_.position = static_cast<float *>(malloc(sizeof(float) * NUM_OF_JOINTS));
+    msg_measured_joint_states_.position_length = NUM_OF_JOINTS;
+    msg_measured_joint_states_.velocity = static_cast<float *>(malloc(sizeof(float) * NUM_OF_JOINTS));;
+    msg_measured_joint_states_.velocity_length = NUM_OF_JOINTS;
     nh_.advertise(pub_measured_joint_states_);
 
     nh_.subscribe(sub_wheel_cmd_velocities_);

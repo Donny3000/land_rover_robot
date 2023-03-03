@@ -370,8 +370,8 @@ namespace auto_rover_base
 
         // ROS Publisher setup to publish left and right encoder ticks
         // This uses the custom encoder ticks message that defines an array of two integers
-        auto_rover_msgs::EncodersStamped encoder_msg_;
-        ros::Publisher pub_encoders_;
+        //auto_rover_msgs::EncodersStamped encoder_msg_;
+        //ros::Publisher pub_encoders_;
 
         sensor_msgs::JointState msg_measured_joint_states_;
         ros::Publisher pub_measured_joint_states_;
@@ -409,7 +409,7 @@ auto_rover_base::BaseController<TMotorController, TMotorDriver>
     , encoder_left_(nh, ENCODER_LEFT_A, ENCODER_LEFT_B, ENCODER_RESOLUTION)
     , encoder_right_(nh, ENCODER_RIGHT_A, ENCODER_RIGHT_B, ENCODER_RESOLUTION)
     , sub_reset_encoders_("reset", &BC<TMotorController, TMotorDriver>::resetEncodersCallback, this)
-    , pub_encoders_("encoder_ticks", &encoder_msg_)
+    //, pub_encoders_("encoder_ticks", &encoder_msg_)
     , pub_measured_joint_states_("measured_joint_states", &msg_measured_joint_states_)
     , sub_wheel_cmd_velocities_("wheel_cmd_velocities", &BC<TMotorController, TMotorDriver>::commandCallback, this)
     , sub_pid_left_("pid_left", &BC<TMotorController, TMotorDriver>::pidLeftCallback, this)
@@ -425,7 +425,7 @@ template <typename TMotorController, typename TMotorDriver>
 void auto_rover_base::BaseController<TMotorController, TMotorDriver>::setup()
 {
     nh_.initNode();
-    nh_.advertise(pub_encoders_);
+    //nh_.advertise(pub_encoders_);
 
     // msg_measured_joint_states_ is of type sensor_msgs::JointState
     // which contains float[] joint arrays of undefined size.
@@ -547,8 +547,8 @@ void auto_rover_base::BaseController<TMotorController, TMotorDriver>::read()
     ticks_left_ = encoder_left_.read();
     ticks_right_ = encoder_right_.read();
 
-    encoder_msg_.encoders.ticks[0] = ticks_left_;
-    encoder_msg_.encoders.ticks[1] = ticks_right_;
+    //encoder_msg_.encoders.ticks[0] = ticks_left_;
+    //encoder_msg_.encoders.ticks[1] = ticks_right_;
     // Avoid having too many publishers
     // Otherwise error like 'wrong checksum for topic id and msg'
     // and 'Write timeout: Write timeout' happen.

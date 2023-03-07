@@ -48,6 +48,7 @@ void setup()
 void loop()
 {
     static bool is_imu_initialized = false;
+    static bool e_stop_activated   = false;
 
     // Here is the main control loop for the base controller. This block drives
     // the robot based on a defined control rate.
@@ -64,8 +65,17 @@ void loop()
     command_dt = nh_.now().toSec() - bc_.lastUpdateTime().command_received.toSec();
     if (command_dt >= ros::Duration(E_STOP_COMMAND_RECEIVED_DURATION, 0).toSec())
     {
-        nh_.logerror("Emergency STOP activated");
+        // Throttle the error message
+        if (!e_stop_activated)
+        {
+            nh_.logerror("Emergency STOP activated");
+            e_stop_activated = true;
+        }
         bc_.eStop();
+    }
+    else
+    {
+        e_stop_activated = false;
     }
 
     // This block publishes IMU data based on a defined IMU rate
@@ -102,4 +112,5 @@ void loop()
 
     // Call all the callbacks waiting to be called
     nh_.spinOnce();
+    delay(5);
 }

@@ -3,6 +3,7 @@
 
 #define NUM_OF_JOINTS                    2
 #define E_STOP_COMMAND_RECEIVED_DURATION 5 // Stop motors if no command was received after this amount of seconds
+#define ERROR_MSG_THROTTLE_DELAY         10 // Seconds
 
 // Encoder Pins
 #define ENCODER_LEFT_A                   3

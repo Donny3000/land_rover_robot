@@ -1,7 +1,7 @@
 # Hardware related parameters
 # will be loaded onto the parameter server
-# See the diffbot.launch
-diffbot:
+# See the auto_rover.launch
+auto_rover:
   encoder_resolution: 542249 # 5422248.86
   gain: 1.0
   trim: 0.0

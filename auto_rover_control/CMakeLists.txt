@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0.2)
-project(auto_rover_speed_controller)
+project(auto_rover_control)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
 # add_compile_options(-std=c++11)
@@ -8,11 +8,12 @@ project(auto_rover_speed_controller)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
-  std_msgs
-  geometry_msgs
-  message_generation
+  controller_manager
+  diff_drive_controller
+  hardware_interface
   roscpp
-  rospy
+  sensor_msgs
+  transmission_interface
 )
 
 ## System dependencies are found with CMake's conventions
@@ -108,7 +109,7 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES auto_rover_speed_controller
-  CATKIN_DEPENDS std_msgs geometry_msgs roscpp rospy
+#  CATKIN_DEPENDS controller_manager diff_drive_controller hardware_interface roscpp sensor_msgs transmission_interface
 #  DEPENDS system_lib
 )
 

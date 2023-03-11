@@ -1,0 +1,6 @@
+<launch>
+    <arg name="rvizconfig" default="$(find auto_rover_control)/rviz/auto_rover.rviz" />
+
+    <!-- Launch visualization in rviz -->
+    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find auto_rover_description)/urdf.rviz" required="true" />
+</launch>

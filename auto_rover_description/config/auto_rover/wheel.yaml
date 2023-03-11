@@ -1,0 +1,10 @@
+# These wheel specifications are derived from the DFRobot track
+mass:   0.226796  # Wheel mass in Kg (approximate weight the track)
+radius: 0.0803    # Wheel radius in m (derived from the track length, which is interpreted as the circumference)
+length: 0.0269    # Wheel length in m, considering is as a cylinder (track width)
+#mesh: '../components/wheel.stl'          # Name of the mesh files. Leave it empty ('') to have a red wheel
+mesh: ''
+scale: ''
+x_offset: 0.1125
+y_offset: 0.015
+z_offset: 0.0

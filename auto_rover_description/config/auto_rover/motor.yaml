@@ -1,0 +1,9 @@
+mass: 0.101        # Motor mass in Kg
+radius: 0.025      # Motor radius in m
+length: 0.067      # Motor length in m
+#mesh: 'motor.stl'  # Name of the mesh files. Leave it empty ('') to have a box as motor
+mesh: ''
+scale: ''
+x_offset: 0.127
+y_offset: -0.0508
+z_offset: 0.0508

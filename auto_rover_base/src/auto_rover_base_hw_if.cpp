@@ -20,7 +20,7 @@ namespace auto_rover_base
         // E.g. parse the URDF for joint names & interfaces, then initialize them
         // Check if the URDF model needs to be loaded
         if (urdf_model == NULL)
-            loadURDF(nh, "robot_description");
+            loadURDF(nh, "auto_rover_description");
         else
             urdf_model_ = urdf_model;
 
@@ -31,15 +31,15 @@ namespace auto_rover_base
         // Code API of rosparam_shortcuts:
         // http://docs.ros.org/en/noetic/api/rosparam_shortcuts/html/namespacerosparam__shortcuts.html#aa6536fe0130903960b1de4872df68d5d
         error += !rosparam_shortcuts::get(name_, rpnh, "joints", joint_names_);
-        error += !rosparam_shortcuts::get(name_, nh_, "mobile_base_controller/wheel_radius", wheel_radius_);
-        error += !rosparam_shortcuts::get(name_, nh_, "mobile_base_controller/linear/x/max_velocity", max_velocity_);
+        error += !rosparam_shortcuts::get(name_, nh_ , "mobile_base_controller/wheel_radius", wheel_radius_);
+        error += !rosparam_shortcuts::get(name_, nh_ , "mobile_base_controller/linear/x/max_velocity", max_velocity_);
         // Get additional parameters from the diffbot_base/config/base.yaml which is stored on the parameter server
-        error += !rosparam_shortcuts::get(name_, nh_, "encoder_resolution", encoder_resolution_);
-        error += !rosparam_shortcuts::get(name_, nh_, "gain", gain_);
-        error += !rosparam_shortcuts::get(name_, nh_, "trim", trim_);
-        error += !rosparam_shortcuts::get(name_, nh_, "motor_constant", motor_constant_);
-        error += !rosparam_shortcuts::get(name_, nh_, "pwm_limit", pwm_limit_);
-        error += !rosparam_shortcuts::get(name_, nh_, "debug/hardware_interface", debug_);
+        error += !rosparam_shortcuts::get(name_, nh_ , "encoder_resolution", encoder_resolution_);
+        error += !rosparam_shortcuts::get(name_, nh_ , "gain", gain_);
+        error += !rosparam_shortcuts::get(name_, nh_ , "trim", trim_);
+        error += !rosparam_shortcuts::get(name_, nh_ , "motor_constant", motor_constant_);
+        error += !rosparam_shortcuts::get(name_, nh_ , "pwm_limit", pwm_limit_);
+        error += !rosparam_shortcuts::get(name_, nh_ , "debug/hardware_interface", debug_);
         rosparam_shortcuts::shutdownIfError(name_, error);
 
         wheel_diameter_ = 2.0 * wheel_radius_;
@@ -56,17 +56,17 @@ namespace auto_rover_base
         ROS_INFO_STREAM("pwm_limit: " << pwm_limit_);
 
         // Setup publisher for the motor driver 
-        pub_left_motor_value_ = nh_.advertise<std_msgs::Int32>("motor_left", 10);
-        pub_right_motor_value_ = nh_.advertise<std_msgs::Int32>("motor_right", 10);
+        pub_left_motor_value_      = nh_.advertise<std_msgs::Int32>("motor_left", 10);
+        pub_right_motor_value_     = nh_.advertise<std_msgs::Int32>("motor_right", 10);
 
         // Setup publisher for angular wheel joint velocity commands
-        pub_wheel_cmd_velocities_ = nh_.advertise<auto_rover_msgs::WheelsCmdStamped>("wheel_cmd_velocities", 10);
+        pub_wheel_cmd_velocities_  = nh_.advertise<auto_rover_msgs::WheelsCmdStamped>("wheel_cmd_velocities", 10);
 
         // Setup publisher to reset wheel encoders (used during first launch of the hardware interface)
-        pub_reset_encoders_ = nh_.advertise<std_msgs::Empty>("reset", 10);
+        pub_reset_encoders_        = nh_.advertise<std_msgs::Empty>("reset", 10);
         
         // Setup subscriber for the wheel encoders
-        sub_encoder_ticks_ = nh_.subscribe("encoder_ticks", 10, &AutoRoverHWInterface::encoderTicksCallback, this);
+        sub_encoder_ticks_         = nh_.subscribe("encoder_ticks", 10, &AutoRoverHWInterface::encoderTicksCallback, this);
         sub_measured_joint_states_ = nh_.subscribe("measured_joint_states", 10, &AutoRoverHWInterface::measuredJointStatesCallback, this);
 
         // Initialize the hardware interface

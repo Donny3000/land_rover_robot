@@ -1,7 +1,7 @@
 #ifndef PID_H
 #define PID_H
 
-namespace auto_rover_base
+namespace auto_rover
 {
     class PID
     {

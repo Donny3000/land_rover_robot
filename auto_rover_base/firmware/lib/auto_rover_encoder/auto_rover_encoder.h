@@ -4,7 +4,7 @@
 #include <ros.h>
 #include <Encoder.h>
 
-namespace auto_rover_base
+namespace auto_rover
 {
     struct JointState
     {
@@ -105,6 +105,12 @@ namespace auto_rover_base
          */
         inline int resolution() { return encoder_resolution_; };
 
+        /** \brief Getter for the \ref previous_encoder_ticks_ variable used to compute the joint state
+         * 
+         * \returns The encoder tick counter used to compute the joint state.
+        */
+       inline int32_t prev_encoder_ticks() { return prev_encoder_ticks_; };
+
 
         JointState joint_state_;
 
@@ -119,7 +125,7 @@ namespace auto_rover_base
         ros::Time prev_update_time_;
         
         // Previous encoder tick count when the \ref getRPM or \ref angularVelocity method was called to calculated the delta tick count.
-        long prev_encoder_ticks_;
+        int32_t prev_encoder_ticks_;
     };
 }
 

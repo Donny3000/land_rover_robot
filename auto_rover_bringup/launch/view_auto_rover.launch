@@ -1,0 +1,7 @@
+<launch>
+    <!-- Arguments -->
+    <!--arg name="model" default="$(env auto_rover_MODEL)" doc="model type [auto_rover, remo]"/-->
+    <arg name="model" default="auto_rover" doc="model type [auto_rover, remo]"/>
+    <!-- Launch visualization in rviz -->
+    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find auto_rover_bringup)/rviz/$(arg model)_bringup.rviz" required="true" />
+</launch>

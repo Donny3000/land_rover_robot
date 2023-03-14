@@ -1,7 +1,7 @@
 #ifndef MOTOR_CONTROLLER_INTF_H
 #define MOTOR_CONTROLLER_INTF_H
 
-namespace auto_rover_base
+namespace auto_rover
 {
     /** \brief Abstract base interface class for a motor controller
      * 

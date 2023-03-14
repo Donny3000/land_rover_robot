@@ -24,7 +24,7 @@ int main(int argc, char **argv)
     
     // Setup for the control loop.
     ros::Time prev_time = ros::Time::now();
-    ros::Rate rate(10.0); // 50 Hz rate
+    ros::Rate rate(100.0); // 50 Hz rate
     rate.sleep();
 
     // Blocks until shutdown signal recieved
@@ -37,10 +37,12 @@ int main(int argc, char **argv)
 
         // Execution of the actual control loop.
         autoRover.read(time, period);
+
         // If needed, its possible to define transmissions in software by calling the 
         // transmission_interface::ActuatorToJointPositionInterface::propagate()
         // after reading the joint states.
         cm.update(time, period);
+
         // In case of software transmissions, use 
         // transmission_interface::JointToActuatorEffortHandle::propagate()
         // to convert from the joint space to the actuator space.

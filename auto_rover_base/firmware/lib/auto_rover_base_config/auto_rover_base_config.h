@@ -2,8 +2,7 @@
 #define AUTO_ROVER_BASE_CONFIG_H
 
 #define NUM_OF_JOINTS                    2
-#define E_STOP_COMMAND_RECEIVED_DURATION 5 // Stop motors if no command was received after this amount of seconds
-#define ERROR_MSG_THROTTLE_DELAY         10 // Seconds
+#define E_STOP_COMMAND_RECEIVED_DURATION 5  // Stop motors if no command was received after this amount of seconds
 
 // Encoder Pins
 #define ENCODER_LEFT_A                   3
@@ -29,7 +28,7 @@
 #define K_D                              0.5 // D constant
 #define PWM_BITS                         8   // PWM Resolution of the microcontroller
 
-#define UPDATE_RATE_CONTROL              20
+#define UPDATE_RATE_CONTROL              100
 #define UPDATE_RATE_IMU                  1
 #define UPDATE_RATE_DEBUG                5
 

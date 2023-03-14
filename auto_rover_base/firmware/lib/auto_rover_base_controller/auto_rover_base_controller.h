@@ -1,5 +1,5 @@
-#ifndef AUTO_ROVER_BASE_CONTROLLER_H
-#define AUTO_ROVER_BASE_CONTROLLER_H
+#ifndef AUTO_ROVER_CONTROLLER_H
+#define AUTO_ROVER_CONTROLLER_H
 
 #include <ros.h>
 #include <auto_rover_msgs/EncodersStamped.h>
@@ -15,14 +15,14 @@
 #include "pid.h"
 
 
-namespace auto_rover_base
+namespace auto_rover
 {
     /** \brief Communicates with the high level hardware_interface::RobotHW and
      *         interacts with the robot hardware sensors (e.g. encoders) and
      *         actuators (e.g. motor driver).
      * 
      * The BaseController communicates with the high level interface
-     * auto_rover_base::hardware_interface::RobotHW using ROS publishers and
+     * auto_rover::hardware_interface::RobotHW using ROS publishers and
      * subscribers. In the main loop (see main.cpp) this class is operated at
      * specific update rates \ref update_rate_ for different sensors and
      * actuators.
@@ -49,20 +49,20 @@ namespace auto_rover_base
      * "wheel_cmd_velocities" topic) with the \ref sub_wheel_cmd_velocities_
      * and keeps a pointer to the motor in \ref p_motor_controller_ using a
      * generic motor driver agnostic interface
-     * \ref auto_rover_base::MotorControllerIntf. Each time a new
+     * \ref auto_rover::MotorControllerIntf. Each time a new
      * \ref auto_rover_msgs::WheelsCmdStamped is received on the
      * "wheel_cmd_velocities" topic the \ref commandCallback is called and the
      * two target velocities \ref wheel_cmd_velocity_left_ and
      * \ref wheel_cmd_velocity_right_ for each wheel are updated.
      * 
      * To measure the angular wheel positions (absolute) and the angular
-     * velocities, two \ref auto_rover_base::Encoder objects
+     * velocities, two \ref auto_rover::Encoder objects
      * ( \ref encoder_left_ \ref encoder_right_) are used to \ref read() the
-     * auto_rover_base::JointStates, stored in \ref joint_state_left_ and
+     * auto_rover::JointStates, stored in \ref joint_state_left_ and
      * \ref joint_state_left_. After reading the latest states (position and
      * velocity), the values are published with \ref pub_measured_joint_states_
      * on "measured_joint_states" topic of type \ref sensor_msgs::JointState.
-     * The \ref auto_rover_base::hardware_interface::RobotHW subscribes to
+     * The \ref auto_rover::hardware_interface::RobotHW subscribes to
      * these joint states and passes them on to the \ref diff_drive_controller.
      * Also inside the \ref read() method, the current encoder ticks read from
      * the \ref encoder_left_ and \ref encoder_right_ and stored in
@@ -75,10 +75,10 @@ namespace auto_rover_base
      * 
      * For initialization the following parameters are read from the ROS
      * parameter server.
-     * - /auto_rover_base/encoder_resolution
-     * - /auto_rover_base/mobile_base_controller/wheel_radius
-     * - /auto_rover_base/mobile_base_controller/linear/x/max_velocity
-     * - /auto_rover_base/debug/base_controller
+     * - /auto_rover/encoder_resolution
+     * - /auto_rover/mobile_base_controller/wheel_radius
+     * - /auto_rover/mobile_base_controller/linear/x/max_velocity
+     * - /auto_rover/debug/base_controller
      * 
      * @tparam TMotorController 
      * @tparam TMotorDriver 
@@ -96,7 +96,7 @@ namespace auto_rover_base
          * in a parent scope (e.g. main.cpp). The motor controller that
          * controls both the left and right motor is kept generic. The only
          * requirement is to implement the
-         * \ref auto_rover_base::MotorControllerIntf, which is composed of the
+         * \ref auto_rover::MotorControllerIntf, which is composed of the
          * motor driver and has therefore the ability to control two motors.
          * 
          * @param nh Reference to the global ROS node handle
@@ -155,13 +155,15 @@ namespace auto_rover_base
              * @param debug_frequency Defines how often debug messages are output.
              */
             inline UpdateRate(double imu_frequency,
-                               double control_frequency,
-                               double debug_frequency)
+                              double control_frequency,
+                              double debug_frequency)
                 : imu_(imu_frequency)
                 , control_(control_frequency)
                 , debug_(debug_frequency)
                 , period_(imu_frequency, control_frequency, debug_frequency) {};
         } update_rate_;
+
+        inline UpdateRate& publishRate() { return update_rate_; };
 
         /**
          * @brief Calculates the period (s) from a given \p frequency (Hz).
@@ -170,8 +172,6 @@ namespace auto_rover_base
          * @return int period in seconds.
          */
         inline int period(double frequency) { return 1 / frequency; };
-
-        inline UpdateRate& publishRate() { return update_rate_; };
 
         /**
          * @brief Keeps track of the last update times.
@@ -239,10 +239,10 @@ namespace auto_rover_base
          * @brief Reads parameters from the parameter server
          * 
          * - Get Parameters from Parameter Server
-         *   - /auto_rover_base/encoder_resolution
-         *   - /auto_rover_base/mobile_base_controller/wheel_radius
-         *   - /auto_rover_base/mobile_base_controller/linear/x/max_velocity
-         *   - /auto_rover_base/debug/base_controller
+         *   - /auto_rover/encoder_resolution
+         *   - /auto_rover/mobile_base_controller/wheel_radius
+         *   - /auto_rover/mobile_base_controller/linear/x/max_velocity
+         *   - /auto_rover/debug/base_controller
          * - Initialize Auto Rover Wheel Encoders
          * - Reset both wheel encoders tick count to zero
          * - Initialize the \ref max_angular_velocity_ from the read \ref max_linear_velocity_ and \ref wheel_radius_
@@ -254,7 +254,7 @@ namespace auto_rover_base
          * 
          * Sets the \ref wheel_cmd_velocity_left_ and \ref wheel_cmd_velocity_right_ to zero.
          * This method is called when the \ref commandCallback wasn't called within the 
-         * \ref LastUpdateTime::command_received period on the /auto_rover_base/wheel_cmd_velocities topic.
+         * \ref LastUpdateTime::command_received period on the /auto_rover/wheel_cmd_velocities topic.
          * 
          */
         void eStop();
@@ -275,13 +275,13 @@ namespace auto_rover_base
          * The values for both motors sent to the motor driver are calculated
          * by the two PIDs \ref pid_motor_left_ and \ref pid_motor_right_,
          * based on the error between commanded angular velocity vs measured
-         * angular velocity (e.g. auto_rover_base::PID::error_ =
+         * angular velocity (e.g. auto_rover::PID::error_ =
          * \ref wheel_cmd_velocity_left_ - \ref measured_angular_velocity_left_)
          * 
          * The calculated PID ouput values are capped at -/+ MAX_RPM to prevent
          * the PID from having too much error. The computed and capped PID
          * values are then set using the
-         * \ref auto_rover_base::MotorControllerIntf::setMotorSpeeds method for
+         * \ref auto_rover::MotorControllerIntf::setMotorSpeeds method for
          * the left and right motors \ref p_motor_controller_
          * 
          */
@@ -357,12 +357,12 @@ namespace auto_rover_base
         //   Good Performance: only the first pin has interrupt capability
         //   Low Performance:  neither pin has interrupt capability
         // avoid using pins with LEDs attached
-        auto_rover_base::Encoder encoder_left_;
-        auto_rover_base::Encoder encoder_right_;
+        auto_rover::Encoder encoder_left_;
+        auto_rover::Encoder encoder_right_;
         long ticks_left_ = 0, ticks_right_ = 0;
 
         // Measured left and right joint states (angular position (rad) and angular velocity (rad/s))
-        auto_rover_base::JointState joint_state_left_, joint_state_right_;
+        auto_rover::JointState joint_state_left_, joint_state_right_;
 
         int encoder_resolution_;
 
@@ -370,8 +370,8 @@ namespace auto_rover_base
 
         // ROS Publisher setup to publish left and right encoder ticks
         // This uses the custom encoder ticks message that defines an array of two integers
-        //auto_rover_msgs::EncodersStamped encoder_msg_;
-        //ros::Publisher pub_encoders_;
+        auto_rover_msgs::EncodersStamped encoder_msg_;
+        ros::Publisher pub_encoders_;
 
         sensor_msgs::JointState msg_measured_joint_states_;
         ros::Publisher pub_measured_joint_states_;
@@ -398,31 +398,31 @@ namespace auto_rover_base
 }
 
 template <typename TMotorController, typename TMotorDriver>
-using BC = auto_rover_base::BaseController<TMotorController, TMotorDriver>;
+using BC = auto_rover::BaseController<TMotorController, TMotorDriver>;
 
 template <typename TMotorController, typename TMotorDriver>
-auto_rover_base::BaseController<TMotorController, TMotorDriver>
+auto_rover::BaseController<TMotorController, TMotorDriver>
     ::BaseController(ros::NodeHandle &nh, TMotorController* motor_controller)
     : update_rate_(UPDATE_RATE_IMU, UPDATE_RATE_CONTROL, UPDATE_RATE_DEBUG)
     , last_update_time_(nh.now())
     , nh_(nh)
-    , encoder_left_(nh, ENCODER_LEFT_A, ENCODER_LEFT_B, ENCODER_RESOLUTION)
+    , encoder_left_ (nh, ENCODER_LEFT_A , ENCODER_LEFT_B , ENCODER_RESOLUTION)
     , encoder_right_(nh, ENCODER_RIGHT_A, ENCODER_RIGHT_B, ENCODER_RESOLUTION)
     , sub_reset_encoders_("reset", &BC<TMotorController, TMotorDriver>::resetEncodersCallback, this)
-    //, pub_encoders_("encoder_ticks", &encoder_msg_)
+    , pub_encoders_ ("encoder_ticks", &encoder_msg_)
     , pub_measured_joint_states_("measured_joint_states", &msg_measured_joint_states_)
     , sub_wheel_cmd_velocities_("wheel_cmd_velocities", &BC<TMotorController, TMotorDriver>::commandCallback, this)
-    , sub_pid_left_("pid_left", &BC<TMotorController, TMotorDriver>::pidLeftCallback, this)
+    , sub_pid_left_( "pid_left" , &BC<TMotorController, TMotorDriver>::pidLeftCallback , this)
     , sub_pid_right_("pid_right", &BC<TMotorController, TMotorDriver>::pidRightCallback, this)
-    , motor_pid_left_(PWM_MIN, PWM_MAX, K_P, K_I, K_D)
-    , motor_pid_right_(PWM_MIN, PWM_MAX, K_P, K_I, K_D)
+    , motor_pid_left_( -POLOLU_VNH5019_SPEED_MAX, POLOLU_VNH5019_SPEED_MAX, K_P, K_I, K_D)
+    , motor_pid_right_(-POLOLU_VNH5019_SPEED_MAX, POLOLU_VNH5019_SPEED_MAX, K_P, K_I, K_D)
 {
     p_motor_controller_ = motor_controller;
 }
 
 
 template <typename TMotorController, typename TMotorDriver>
-void auto_rover_base::BaseController<TMotorController, TMotorDriver>::setup()
+void auto_rover::BaseController<TMotorController, TMotorDriver>::setup()
 {
     nh_.initNode();
     //nh_.advertise(pub_encoders_);
@@ -437,6 +437,7 @@ void auto_rover_base::BaseController<TMotorController, TMotorDriver>::setup()
     msg_measured_joint_states_.velocity = static_cast<float *>(malloc(sizeof(float) * NUM_OF_JOINTS));;
     msg_measured_joint_states_.velocity_length = NUM_OF_JOINTS;
     nh_.advertise(pub_measured_joint_states_);
+    nh_.advertise(pub_encoders_);
 
     nh_.subscribe(sub_wheel_cmd_velocities_);
     nh_.subscribe(sub_reset_encoders_);
@@ -451,27 +452,27 @@ void auto_rover_base::BaseController<TMotorController, TMotorDriver>::setup()
 }
 
 template <typename TMotorController, typename TMotorDriver>
-void auto_rover_base::BaseController<TMotorController, TMotorDriver>::init()
+void auto_rover::BaseController<TMotorController, TMotorDriver>::init()
 {
     nh_.loginfo("Get Parameters from Parameter Server");
-    nh_.getParam("/auto_rover_base/encoder_resolution", &this->encoder_resolution_);
+    nh_.getParam("/auto_rover/encoder_resolution", &this->encoder_resolution_);
 
-    String log_msg = String("/auto_rover_base/encoder_resolution: ") + String(encoder_resolution_);
+    String log_msg = String("/auto_rover/encoder_resolution: ") + String(encoder_resolution_);
     nh_.loginfo(log_msg.c_str());
-    nh_.getParam("/auto_rover_base/mobile_base_controller/wheel_radius", &wheel_radius_);
+    nh_.getParam("/auto_rover/mobile_base_controller/wheel_radius", &wheel_radius_);
 
-    log_msg = String("/auto_rover_base/mobile_base_controller/wheel_radius: ") + String(wheel_radius_);
+    log_msg = String("/auto_rover/mobile_base_controller/wheel_radius: ") + String(wheel_radius_);
     nh_.loginfo(log_msg.c_str());
-    nh_.getParam("/auto_rover_base/mobile_base_controller/linear/x/max_velocity", &max_linear_velocity_);
+    nh_.getParam("/auto_rover/mobile_base_controller/linear/x/max_velocity", &max_linear_velocity_);
 
-    log_msg = String("/auto_rover_base/mobile_base_controller/linear/x/max_velocity: ") + String(max_linear_velocity_);
+    log_msg = String("/auto_rover/mobile_base_controller/linear/x/max_velocity: ") + String(max_linear_velocity_);
     nh_.loginfo(log_msg.c_str());
-    nh_.getParam("/auto_rover_base/debug/base_controller", &debug_);
+    nh_.getParam("/auto_rover/debug/base_controller", &debug_);
 
-    log_msg = String("/auto_rover_base/debug/base_controller: ") + String(debug_);
+    log_msg = String("/auto_rover/debug/base_controller: ") + String(debug_);
     nh_.loginfo(log_msg.c_str());
 
-    nh_.loginfo("Initialize auto_rover_base Wheel Encoders");
+    nh_.loginfo("Initialize auto_rover Wheel Encoders");
     encoder_left_.resolution(encoder_resolution_);
     encoder_right_.resolution(encoder_resolution_);
 
@@ -485,12 +486,12 @@ void auto_rover_base::BaseController<TMotorController, TMotorDriver>::init()
 }
 
 template <typename TMotorController, typename TMotorDriver>
-void auto_rover_base::BaseController<TMotorController, TMotorDriver>::commandCallback(const auto_rover_msgs::WheelsCmdStamped& cmd_msg)
+void auto_rover::BaseController<TMotorController, TMotorDriver>::commandCallback(const auto_rover_msgs::WheelsCmdStamped& cmd_msg)
 {
     // Callback function every time the angular wheel commands for each wheel joint are received from 'wheel_cmd_velocities' topic
     // This callback function receives auto_rover_msgs::WheelsCmdStamped message object
     // where auto_rover_msgs::AngularVelocities for both joints are stored
-    wheel_cmd_velocity_left_ = cmd_msg.wheels_cmd.angular_velocities.joint[0];
+    wheel_cmd_velocity_left_  = cmd_msg.wheels_cmd.angular_velocities.joint[0];
     wheel_cmd_velocity_right_ = cmd_msg.wheels_cmd.angular_velocities.joint[1];
 
     // Used for the eStop. In case no auto_rover_msgs::WheelsCmdStamped messages are received on the wheel_cmd_velocities 
@@ -500,7 +501,7 @@ void auto_rover_base::BaseController<TMotorController, TMotorDriver>::commandCal
 
 // ROS Subscriber setup to reset both encoders to zero
 template <typename TMotorController, typename TMotorDriver>
-void auto_rover_base::BaseController<TMotorController, TMotorDriver>::resetEncodersCallback(const std_msgs::Empty& reset_msg)
+void auto_rover::BaseController<TMotorController, TMotorDriver>::resetEncodersCallback(const std_msgs::Empty& reset_msg)
 {
     // reset both back to zero.
     this->encoder_left_.write(0);
@@ -510,28 +511,26 @@ void auto_rover_base::BaseController<TMotorController, TMotorDriver>::resetEncod
 
 
 template <typename TMotorController, typename TMotorDriver>
-void auto_rover_base::BaseController<TMotorController, TMotorDriver>::pidLeftCallback(const auto_rover_msgs::PIDStamped& pid_msg)
+void auto_rover::BaseController<TMotorController, TMotorDriver>::pidLeftCallback(const auto_rover_msgs::PIDStamped& pid_msg)
 {
     // Callback function to update the pid values of the left motor
     // This callback function receives auto_rover_msgs::PID message object
     // where auto_rover_msgs::PID kp, ki, kd for one pid controller is stored
     motor_pid_left_.updateConstants(pid_msg.pid.kp, pid_msg.pid.ki, pid_msg.pid.kd);
-    motor_pid_left_.updateConstants(pid_msg.pid.kp, pid_msg.pid.ki, pid_msg.pid.kd);
 }
 
 template <typename TMotorController, typename TMotorDriver>
-void auto_rover_base::BaseController<TMotorController, TMotorDriver>::pidRightCallback(const auto_rover_msgs::PIDStamped& pid_msg)
+void auto_rover::BaseController<TMotorController, TMotorDriver>::pidRightCallback(const auto_rover_msgs::PIDStamped& pid_msg)
 {
     // Callback function to update the pid values of the left motor
     // This callback function receives auto_rover_msgs::PID message object
     // where auto_rover_msgs::PID kp, ki, kd for one pid controller is stored
-    motor_pid_left_.updateConstants(pid_msg.pid.kp, pid_msg.pid.ki, pid_msg.pid.kd);
-    motor_pid_left_.updateConstants(pid_msg.pid.kp, pid_msg.pid.ki, pid_msg.pid.kd);
+    motor_pid_right_.updateConstants(pid_msg.pid.kp, pid_msg.pid.ki, pid_msg.pid.kd);
 }
 
 
 template <typename TMotorController, typename TMotorDriver>
-void auto_rover_base::BaseController<TMotorController, TMotorDriver>::read()
+void auto_rover::BaseController<TMotorController, TMotorDriver>::read()
 {
     joint_state_left_ = encoder_left_.jointState();
     joint_state_right_ = encoder_right_.jointState();
@@ -541,22 +540,21 @@ void auto_rover_base::BaseController<TMotorController, TMotorDriver>::read()
 
     msg_measured_joint_states_.velocity[0] = joint_state_left_.angular_velocity_;
     msg_measured_joint_states_.velocity[1] = joint_state_right_.angular_velocity_;
+
     pub_measured_joint_states_.publish(&msg_measured_joint_states_);
 
     // get the current tick count of each encoder
     ticks_left_ = encoder_left_.read();
     ticks_right_ = encoder_right_.read();
 
-    //encoder_msg_.encoders.ticks[0] = ticks_left_;
-    //encoder_msg_.encoders.ticks[1] = ticks_right_;
-    // Avoid having too many publishers
-    // Otherwise error like 'wrong checksum for topic id and msg'
-    // and 'Write timeout: Write timeout' happen.
-    //pub_encoders_.publish(&encoder_msg_);
+    encoder_msg_.encoders.ticks[0] = ticks_left_;
+    encoder_msg_.encoders.ticks[1] = ticks_right_;
+
+    pub_encoders_.publish(&encoder_msg_);
 }
 
 template <typename TMotorController, typename TMotorDriver>
-void auto_rover_base::BaseController<TMotorController, TMotorDriver>::write()
+void auto_rover::BaseController<TMotorController, TMotorDriver>::write()
 {
     // https://www.arduino.cc/reference/en/language/functions/math/map/
     // map(value, fromLow, fromHigh, toLow, toHigh)
@@ -570,14 +568,14 @@ void auto_rover_base::BaseController<TMotorController, TMotorDriver>::write()
     // Compute PID output
     // The value sent to the motor driver is calculated by the PID based on the error between commanded angular velocity vs measured angular velocity
     // The calculated PID ouput value is capped at -/+ MAX_RPM to prevent the PID from having too much error
-    motor_cmd_left_ = motor_pid_left_.compute(wheel_cmd_velocity_left_, joint_state_left_.angular_velocity_);
+    motor_cmd_left_  = motor_pid_left_.compute( wheel_cmd_velocity_left_ , joint_state_left_.angular_velocity_);
     motor_cmd_right_ = motor_pid_right_.compute(wheel_cmd_velocity_right_, joint_state_right_.angular_velocity_);
 
     p_motor_controller_->setMotorSpeeds(motor_cmd_left_, motor_cmd_right_);
 }
 
 template <typename TMotorController, typename TMotorDriver>
-void auto_rover_base::BaseController<TMotorController, TMotorDriver>::eStop()
+void auto_rover::BaseController<TMotorController, TMotorDriver>::eStop()
 {
     // Brake the motors
     p_motor_controller_->setMotorBrakes(
@@ -591,36 +589,23 @@ void auto_rover_base::BaseController<TMotorController, TMotorDriver>::eStop()
 }
 
 template <typename TMotorController, typename TMotorDriver>
-void auto_rover_base::BaseController<TMotorController, TMotorDriver>::printDebug()
+void auto_rover::BaseController<TMotorController, TMotorDriver>::printDebug()
 {
-    /*
     String log_msg =
-            String("\nRead:\n") +
-                String("ticks_left_ \t ticks_right_ \t measured_ang_vel_left \t measured_ang_vel_right\n") +
-                String(ticks_left_) + String("\t") + String(ticks_right_) + String("\t") +
-                String(joint_state_left_.angular_velocity_) + String("\t") + String(joint_state_right_.angular_velocity_) +
-            String("\nWrite:\n") + 
-                String("motor_cmd_left_ \t motor_cmd_right_ \t pid_left_error \t pid_right_error\n") +
-                String(motor_cmd_left_) + String("\t") + String(motor_cmd_right_) + String("\t") +
-                //String("pid_left \t pid_right\n") +
-                String(motor_pid_left_.error()) + String("\t") + String(motor_pid_right_.error());
-    */
-
-    String log_msg =
-            String("\nRead:\n") +
-                String("ticks_left_: ") + String(ticks_left_) +
-                String("\nticks_right_: ") + String(ticks_right_) +
-                String("\nmeasured_ang_vel_left: ") + String(joint_state_left_.angular_velocity_) +
-                String("\nmeasured_ang_vel_right: ") + String(joint_state_right_.angular_velocity_) +
-                String("\nwheel_cmd_velocity_left_: ") + String(wheel_cmd_velocity_left_) +
-                String("\nwheel_cmd_velocity_right_: ") + String(wheel_cmd_velocity_right_) +
-
-            String("\nWrite:\n") +
-                String("motor_cmd_left_: ") + String(motor_cmd_left_) +
-                String("\nmotor_cmd_right_: ") + String(motor_cmd_right_) +
-                String("\npid_left_errors (p, i, d): ") + String(motor_pid_left_.proportional()) + String(" ") + String(motor_pid_left_.integral()) + String(" ") + String(motor_pid_left_.derivative()) +
-                String("\npid_right_error (p, i, d): ") + String(motor_pid_right_.proportional()) + String(" ") + String(motor_pid_right_.integral()) + String(" ") + String(motor_pid_right_.derivative());
+            String("\nRead:") +
+                String("\n\t- ticks_left_                 : ") + String(ticks_left_) +
+                String("\n\t- ticks_right_                : ") + String(ticks_right_) +
+                String("\n\t- measured_ang_vel_left       : ") + String(joint_state_left_.angular_velocity_) +
+                String("\n\t- measured_ang_vel_right      : ") + String(joint_state_right_.angular_velocity_) +
+                String("\n\t- wheel_cmd_velocity_left_    : ") + String(wheel_cmd_velocity_left_) +
+                String("\n\t- wheel_cmd_velocity_right_   : ") + String(wheel_cmd_velocity_right_) +
+            String("\nWrite:") +
+                String("\n\t- motor_cmd_left_             : ") + String(motor_cmd_left_) +
+                String("\n\t- motor_cmd_right_            : ") + String(motor_cmd_right_) +
+                String("\n\t- pid_left_errors (p, i, d)   : ") + String(motor_pid_left_.proportional()) + String(" ") + String(motor_pid_left_.integral()) + String(" ") + String(motor_pid_left_.derivative()) +
+                String("\n\t- pid_right_error (p, i, d)   : ") + String(motor_pid_right_.proportional()) + String(" ") + String(motor_pid_right_.integral()) + String(" ") + String(motor_pid_right_.derivative()) +
+            String("\n");
     nh_.loginfo(log_msg.c_str());
 }
 
-#endif // AUTO_ROVER_BASE_CONTROLLER_H
+#endif // AUTO_ROVER_CONTROLLER_H

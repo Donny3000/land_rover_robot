@@ -20,7 +20,7 @@ namespace auto_rover_base
         // E.g. parse the URDF for joint names & interfaces, then initialize them
         // Check if the URDF model needs to be loaded
         if (urdf_model == NULL)
-            loadURDF(nh, "auto_rover_description");
+            loadURDF(nh, "robot_description");
         else
             urdf_model_ = urdf_model;
 
@@ -79,7 +79,7 @@ namespace auto_rover_base
  
     bool AutoRoverHWInterface::init(ros::NodeHandle &root_nh, ros::NodeHandle &robot_hw_nh)
     {
-        ROS_INFO("Initializing AutoRover Hardware Interface ...");
+        ROS_INFO("***** Initializing AutoRover Hardware Interface *****");
         num_joints_ = joint_names_.size();
 
         ROS_INFO("Number of joints: %d", static_cast<int>(num_joints_));
@@ -101,9 +101,9 @@ namespace auto_rover_base
             velocity_joint_interface_.registerHandle(joint_handle);
 
             // Initialize joint states with zero values
-            joint_positions_[i] = 0.0;
+            joint_positions_[i]  = 0.0;
             joint_velocities_[i] = 0.0;
-            joint_efforts_[i] = 0.0; // unused with diff_drive_controller
+            joint_efforts_[i]    = 0.0; // unused with diff_drive_controller
 
             joint_velocity_commands_[i] = 0.0;
 
@@ -131,7 +131,7 @@ namespace auto_rover_base
         // with this robot's hardware_interface::RobotHW.
         registerInterface(&velocity_joint_interface_);
 
-        ROS_INFO("... Done Initializing AutoRover Hardware Interface");
+        ROS_INFO("***** Done Initializing AutoRover Hardware Interface *****");
 
         return true;
     }
@@ -361,10 +361,10 @@ namespace auto_rover_base
     void AutoRoverHWInterface::encoderTicksCallback(const auto_rover_msgs::EncodersStamped::ConstPtr& msg_encoder)
     {
         /// Update current encoder ticks in encoders array
-        encoder_ticks_[0] = msg_encoder->encoders.ticks[0];
-        encoder_ticks_[1] = msg_encoder->encoders.ticks[1];
-        ROS_DEBUG_STREAM_THROTTLE(1, "Left encoder ticks: " << encoder_ticks_[0]);
-        ROS_DEBUG_STREAM_THROTTLE(1, "Right encoder ticks: " << encoder_ticks_[1]);
+        for(std::size_t i = 0; i < num_joints_; ++i)
+        {
+            encoder_ticks_[i] = msg_encoder->encoders.ticks[i];
+        }
     }
 
     void AutoRoverHWInterface::measuredJointStatesCallback(const sensor_msgs::JointState::ConstPtr& msg_joint_states)
@@ -375,8 +375,6 @@ namespace auto_rover_base
             measured_joint_states_[i].angular_position_ = msg_joint_states->position[i];
             measured_joint_states_[i].angular_velocity_ = msg_joint_states->velocity[i];
         }
-        //ROS_DEBUG_STREAM_THROTTLE(1, "Left encoder ticks: " << encoder_ticks_[0]);
-        //ROS_DEBUG_STREAM_THROTTLE(1, "Right encoder ticks: " << encoder_ticks_[1]);
     }
 
 

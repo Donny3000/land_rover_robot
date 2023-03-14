@@ -8,7 +8,7 @@
 #include "auto_rover_base_config.h"
 #include <motor_controller_interface.h>
 
-namespace auto_rover_base
+namespace auto_rover
 {
     /** \brief Implementation of the MotorControllerIntf for the Pololu Dual VNH5019 Motor Shield
      * 

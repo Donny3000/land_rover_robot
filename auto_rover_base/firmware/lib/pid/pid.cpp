@@ -1,7 +1,7 @@
 #include "Arduino.h"
 #include "pid.h"
 
-namespace auto_rover_base
+namespace auto_rover
 {
     PID::PID(float min_val, float max_val, float kp, float ki, float kd):
     min_val_(min_val),

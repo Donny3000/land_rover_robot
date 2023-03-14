@@ -1,6 +1,6 @@
 #include "auto_rover_encoder.h"
 
-namespace auto_rover_base
+namespace auto_rover
 {
   Encoder::Encoder(ros::NodeHandle& nh, uint8_t pin1, uint8_t pin2, int encoder_resolution)
   : nh_(nh)
@@ -12,7 +12,7 @@ namespace auto_rover_base
 
   JointState Encoder::jointState()
   {
-      long encoder_ticks = encoder.read();
+      int32_t encoder_ticks = encoder.read();
       // This function calculates the motor's rotational (angular) velocity based on encoder ticks and delta time
       ros::Time current_time = nh_.now();
       double dt = current_time.toSec() - prev_update_time_.toSec();

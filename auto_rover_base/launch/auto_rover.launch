@@ -21,7 +21,7 @@
               file="$(find auto_rover_base)/config/base.yaml"/>
 
     <!-- Load the controllers -->
-    <!-- This will use the controller manager that got started inside the difbot_base node -->
+    <!-- This will use the controller manager that got started inside the auto_rover_base node -->
     <node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false"
         output="screen" ns="auto_rover" args="joint_state_controller
                                             mobile_base_controller"/>

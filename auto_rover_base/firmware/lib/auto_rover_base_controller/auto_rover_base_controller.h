@@ -6,6 +6,7 @@
 #include <auto_rover_msgs/WheelsCmdStamped.h>
 #include <auto_rover_msgs/AngularVelocities.h>
 #include <auto_rover_msgs/PIDStamped.h>
+#include <auto_rover_msgs/BaseControllerStateStamped.h>
 #include <std_msgs/Empty.h>
 #include <sensor_msgs/JointState.h>
 
@@ -373,6 +374,9 @@ namespace auto_rover
         auto_rover_msgs::EncodersStamped encoder_msg_;
         ros::Publisher pub_encoders_;
 
+        auto_rover_msgs::BaseControllerStateStamped bc_state_msg_;
+        ros::Publisher pub_bc_state_;
+
         sensor_msgs::JointState msg_measured_joint_states_;
         ros::Publisher pub_measured_joint_states_;
 
@@ -410,6 +414,7 @@ auto_rover::BaseController<TMotorController, TMotorDriver>
     , encoder_right_(nh, ENCODER_RIGHT_A, ENCODER_RIGHT_B, ENCODER_RESOLUTION)
     , sub_reset_encoders_("reset", &BC<TMotorController, TMotorDriver>::resetEncodersCallback, this)
     , pub_encoders_ ("encoder_ticks", &encoder_msg_)
+    , pub_bc_state_ ("controller_state", &bc_state_msg_)
     , pub_measured_joint_states_("measured_joint_states", &msg_measured_joint_states_)
     , sub_wheel_cmd_velocities_("wheel_cmd_velocities", &BC<TMotorController, TMotorDriver>::commandCallback, this)
     , sub_pid_left_( "pid_left" , &BC<TMotorController, TMotorDriver>::pidLeftCallback , this)
@@ -436,8 +441,10 @@ void auto_rover::BaseController<TMotorController, TMotorDriver>::setup()
     msg_measured_joint_states_.position_length = NUM_OF_JOINTS;
     msg_measured_joint_states_.velocity = static_cast<float *>(malloc(sizeof(float) * NUM_OF_JOINTS));;
     msg_measured_joint_states_.velocity_length = NUM_OF_JOINTS;
+
     nh_.advertise(pub_measured_joint_states_);
     nh_.advertise(pub_encoders_);
+    nh_.advertise(pub_bc_state_);
 
     nh_.subscribe(sub_wheel_cmd_velocities_);
     nh_.subscribe(sub_reset_encoders_);
@@ -455,20 +462,20 @@ template <typename TMotorController, typename TMotorDriver>
 void auto_rover::BaseController<TMotorController, TMotorDriver>::init()
 {
     nh_.loginfo("Get Parameters from Parameter Server");
-    nh_.getParam("/auto_rover/encoder_resolution", &this->encoder_resolution_);
 
+    nh_.getParam("/auto_rover/encoder_resolution", &this->encoder_resolution_);
     String log_msg = String("/auto_rover/encoder_resolution: ") + String(encoder_resolution_);
     nh_.loginfo(log_msg.c_str());
-    nh_.getParam("/auto_rover/mobile_base_controller/wheel_radius", &wheel_radius_);
 
+    nh_.getParam("/auto_rover/mobile_base_controller/wheel_radius", &wheel_radius_);
     log_msg = String("/auto_rover/mobile_base_controller/wheel_radius: ") + String(wheel_radius_);
     nh_.loginfo(log_msg.c_str());
-    nh_.getParam("/auto_rover/mobile_base_controller/linear/x/max_velocity", &max_linear_velocity_);
 
+    nh_.getParam("/auto_rover/mobile_base_controller/linear/x/max_velocity", &max_linear_velocity_);
     log_msg = String("/auto_rover/mobile_base_controller/linear/x/max_velocity: ") + String(max_linear_velocity_);
     nh_.loginfo(log_msg.c_str());
-    nh_.getParam("/auto_rover/debug/base_controller", &debug_);
 
+    nh_.getParam("/auto_rover/debug/base_controller", &debug_);
     log_msg = String("/auto_rover/debug/base_controller: ") + String(debug_);
     nh_.loginfo(log_msg.c_str());
 
@@ -517,6 +524,12 @@ void auto_rover::BaseController<TMotorController, TMotorDriver>::pidLeftCallback
     // This callback function receives auto_rover_msgs::PID message object
     // where auto_rover_msgs::PID kp, ki, kd for one pid controller is stored
     motor_pid_left_.updateConstants(pid_msg.pid.kp, pid_msg.pid.ki, pid_msg.pid.kd);
+    String log_msg = 
+        String("Updated Left PID Gains: ") +
+        String("P=") + String(pid_msg.pid.kp) + String(" ") +
+        String("I=") + String(pid_msg.pid.ki) + String(" ") +
+        String("D=") + String(pid_msg.pid.kd) + String(" ");
+    this->nh_.loginfo(log_msg.c_str());
 }
 
 template <typename TMotorController, typename TMotorDriver>
@@ -526,6 +539,12 @@ void auto_rover::BaseController<TMotorController, TMotorDriver>::pidRightCallbac
     // This callback function receives auto_rover_msgs::PID message object
     // where auto_rover_msgs::PID kp, ki, kd for one pid controller is stored
     motor_pid_right_.updateConstants(pid_msg.pid.kp, pid_msg.pid.ki, pid_msg.pid.kd);
+    String log_msg = 
+        String("Updated Right PID Gains: ") +
+        String("P=") + String(pid_msg.pid.kp) + String(" ") +
+        String("I=") + String(pid_msg.pid.ki) + String(" ") +
+        String("D=") + String(pid_msg.pid.kd) + String(" ");
+    this->nh_.loginfo(log_msg.c_str());
 }
 
 
@@ -556,22 +575,17 @@ void auto_rover::BaseController<TMotorController, TMotorDriver>::read()
 template <typename TMotorController, typename TMotorDriver>
 void auto_rover::BaseController<TMotorController, TMotorDriver>::write()
 {
-    // https://www.arduino.cc/reference/en/language/functions/math/map/
-    // map(value, fromLow, fromHigh, toLow, toHigh)
-    // Map angular wheel joint velocity to motor cmd
-    // The /diffbot/mobile_base_controller/linear/x/max_velocity from the ROS parameter server 
-    // is convert to max rotational velocity (see init()) and used to map the angular velocity to PWM signals for the motor.
-    // Note this is currently unused because the PID helps to keep the velocity to the commanded one.
-    //motor_cmd_left_ = map(wheel_cmd_velocity_left_, -max_angular_velocity_, max_angular_velocity_, PWM_MIN, PWM_MAX);
-    //motor_cmd_right_ = map(wheel_cmd_velocity_right_, -max_angular_velocity_, max_angular_velocity_, PWM_MIN, PWM_MAX);
-
     // Compute PID output
     // The value sent to the motor driver is calculated by the PID based on the error between commanded angular velocity vs measured angular velocity
     // The calculated PID ouput value is capped at -/+ MAX_RPM to prevent the PID from having too much error
-    motor_cmd_left_  = motor_pid_left_.compute( wheel_cmd_velocity_left_ , joint_state_left_.angular_velocity_);
-    motor_cmd_right_ = motor_pid_right_.compute(wheel_cmd_velocity_right_, joint_state_right_.angular_velocity_);
+    motor_cmd_left_  = static_cast<int>(motor_pid_left_.compute( wheel_cmd_velocity_left_ , joint_state_left_.angular_velocity_));
+    motor_cmd_right_ = static_cast<int>(motor_pid_right_.compute(wheel_cmd_velocity_right_, joint_state_right_.angular_velocity_));
 
     p_motor_controller_->setMotorSpeeds(motor_cmd_left_, motor_cmd_right_);
+    if (motor_cmd_left_ == 0 || motor_cmd_right_ == 0)
+    {
+        p_motor_controller_->setMotorBrakes(POLOLU_VNH5019_BRAKE_MAX, POLOLU_VNH5019_BRAKE_MAX);
+    }
 }
 
 template <typename TMotorController, typename TMotorDriver>
@@ -591,21 +605,39 @@ void auto_rover::BaseController<TMotorController, TMotorDriver>::eStop()
 template <typename TMotorController, typename TMotorDriver>
 void auto_rover::BaseController<TMotorController, TMotorDriver>::printDebug()
 {
-    String log_msg =
-            String("\nRead:") +
-                String("\n\t- ticks_left_                 : ") + String(ticks_left_) +
-                String("\n\t- ticks_right_                : ") + String(ticks_right_) +
-                String("\n\t- measured_ang_vel_left       : ") + String(joint_state_left_.angular_velocity_) +
-                String("\n\t- measured_ang_vel_right      : ") + String(joint_state_right_.angular_velocity_) +
-                String("\n\t- wheel_cmd_velocity_left_    : ") + String(wheel_cmd_velocity_left_) +
-                String("\n\t- wheel_cmd_velocity_right_   : ") + String(wheel_cmd_velocity_right_) +
-            String("\nWrite:") +
-                String("\n\t- motor_cmd_left_             : ") + String(motor_cmd_left_) +
-                String("\n\t- motor_cmd_right_            : ") + String(motor_cmd_right_) +
-                String("\n\t- pid_left_errors (p, i, d)   : ") + String(motor_pid_left_.proportional()) + String(" ") + String(motor_pid_left_.integral()) + String(" ") + String(motor_pid_left_.derivative()) +
-                String("\n\t- pid_right_error (p, i, d)   : ") + String(motor_pid_right_.proportional()) + String(" ") + String(motor_pid_right_.integral()) + String(" ") + String(motor_pid_right_.derivative()) +
-            String("\n");
-    nh_.loginfo(log_msg.c_str());
+    bc_state_msg_.base_controller_state.ticks_left = ticks_left_;
+    bc_state_msg_.base_controller_state.ticks_right = ticks_right_;
+    bc_state_msg_.base_controller_state.measured_angular_velocity_left = joint_state_left_.angular_velocity_;
+    bc_state_msg_.base_controller_state.measured_angular_velocity_right = joint_state_right_.angular_velocity_;
+    bc_state_msg_.base_controller_state.wheel_cmd_velocity_left = wheel_cmd_velocity_left_;
+    bc_state_msg_.base_controller_state.wheel_cmd_velocity_right = wheel_cmd_velocity_right_;
+    bc_state_msg_.base_controller_state.motor_command_left = motor_cmd_left_;
+    bc_state_msg_.base_controller_state.motor_command_right = motor_cmd_right_;\
+    bc_state_msg_.base_controller_state.pid_left_output = motor_pid_left_.output();
+    bc_state_msg_.base_controller_state.pid_right_output = motor_pid_right_.output();
+    bc_state_msg_.base_controller_state.pid_left_error_kp = motor_pid_left_.proportional();
+    bc_state_msg_.base_controller_state.pid_left_error_ki = motor_pid_left_.integral();
+    bc_state_msg_.base_controller_state.pid_left_error_kd = motor_pid_left_.derivative();
+    bc_state_msg_.base_controller_state.pid_right_error_kp = motor_pid_right_.proportional();
+    bc_state_msg_.base_controller_state.pid_right_error_ki = motor_pid_right_.integral();
+    bc_state_msg_.base_controller_state.pid_right_error_kd = motor_pid_right_.derivative();
+    pub_bc_state_.publish(&bc_state_msg_);
+
+    // String log_msg =
+    //         String("\nRead:") +
+    //             String("\n\t- ticks_left_                 : ") + String(ticks_left_) +
+    //             String("\n\t- ticks_right_                : ") + String(ticks_right_) +
+    //             String("\n\t- measured_ang_vel_left       : ") + String(joint_state_left_.angular_velocity_) +
+    //             String("\n\t- measured_ang_vel_right      : ") + String(joint_state_right_.angular_velocity_) +
+    //             String("\n\t- wheel_cmd_velocity_left_    : ") + String(wheel_cmd_velocity_left_) +
+    //             String("\n\t- wheel_cmd_velocity_right_   : ") + String(wheel_cmd_velocity_right_) +
+    //         String("\nWrite:") +
+    //             String("\n\t- motor_cmd_left_             : ") + String(motor_cmd_left_) +
+    //             String("\n\t- motor_cmd_right_            : ") + String(motor_cmd_right_) +
+    //             String("\n\t- pid_left_errors (p, i, d)   : ") + String(motor_pid_left_.proportional()) + String(" ") + String(motor_pid_left_.integral()) + String(" ") + String(motor_pid_left_.derivative()) +
+    //             String("\n\t- pid_right_error (p, i, d)   : ") + String(motor_pid_right_.proportional()) + String(" ") + String(motor_pid_right_.integral()) + String(" ") + String(motor_pid_right_.derivative()) +
+    //         String("\n");
+    // nh_.loginfo(log_msg.c_str());
 }
 
 #endif // AUTO_ROVER_CONTROLLER_H

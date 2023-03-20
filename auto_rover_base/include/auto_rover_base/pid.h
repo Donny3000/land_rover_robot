@@ -3,6 +3,7 @@
 
 #include <ros/duration.h>
 #include <control_toolbox/pid.h>
+#include <auto_rover_msgs/PIDStamped.h>
 
 // Dynamic Reconfigure
 #include <dynamic_reconfigure/server.h>

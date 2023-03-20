@@ -2,10 +2,10 @@ auto_rover:
   gazebo_ros_control:
     pid_gains:
       track_right_wheel_joint:
-        p: 1.06
+        p: 1.0
         i: 0.0
         d: 0.0
       track_left_wheel_joint:
-        p: 1.06
+        p: 1.0
         i: 0.0
         d: 0.0

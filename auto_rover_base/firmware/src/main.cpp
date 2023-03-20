@@ -80,17 +80,14 @@ void loop()
 
     // This block displays the encoder readings. Change DEBUG to 0 if you
     // don't want to display.
-    if (bc_.debug())
+    double debug_dt = nh_.now().toSec() - bc_.lastUpdateTime().debug.toSec();
+    if (debug_dt >= bc_.publishRate().period().debug_ && bc_.debug())
     {
-        double debug_dt = nh_.now().toSec() - bc_.lastUpdateTime().debug.toSec();
-        if (debug_dt >= bc_.publishRate().period().debug_)
-        {
-            bc_.printDebug();
-            bc_.lastUpdateTime().debug = nh_.now();
-        }
+        bc_.printDebug();
+        bc_.lastUpdateTime().debug = nh_.now();
     }
 
     // Call all the callbacks waiting to be called
     nh_.spinOnce();
-    delay(5);
+    //delay(5);
 }

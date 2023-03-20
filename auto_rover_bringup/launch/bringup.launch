@@ -1,6 +1,7 @@
 <launch>
     <!--arg name="model" default="$(env auto_rover_MODEL)" doc="model type [auto_rover, remo]"/-->
-    <arg name="model" default="auto_rover" doc="model type [auto_rover, remo]"/>
+    <arg name="model"       default="auto_rover" doc="model type [auto_rover, remo]"/>
+    <arg name="use_gamepad" default="true"       doc="Enable the teleop_twisted_joy gamepad interface"/>
     
     <!-- The `minimal.launch` is used to load the auto_rover's robot descripton
         and the controller configuration onto the ROS parameter server using the launch file from the 
@@ -15,6 +16,8 @@
         <arg name="model" value="$(arg model)" />
     </include>
 
+    <include file="$(find auto_rover_bringup)/launch/gamepad_teleop.launch" if="$(arg use_gamepad)"/>
+
     <!-- Starting robot state publish which will publish tf -->
     <!-- This is needed to publish transforms between all links -->
     <!-- diff_drive_controller publishes only a single transfrom between odom and base_footprint -->
@@ -22,4 +25,3 @@
     <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"
         output="screen" ns="auto_rover" />
 </launch>
-

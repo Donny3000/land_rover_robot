@@ -2,11 +2,18 @@
 # will be loaded onto the parameter server
 # See the auto_rover.launch
 auto_rover:
-  encoder_resolution: 542249 # 5422248.86
+  encoder_resolution: 2249 # 542249 # 5422248.86
   gain: 1.0
   trim: 0.0
+  ff  : 0.8
+  kp  : 1.0
+  ki  : 0.0
+  kd  : 0.0
+  i_max: 3.5
+  i_min: -3.5
+  antiwindup: false
   motor_constant: 1.0 #27.0
   pwm_limit: 1.0
   debug:
     hardware_interface: false
-    base_controller: false
+    base_controller: true

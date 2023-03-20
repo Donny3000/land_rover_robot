@@ -50,6 +50,8 @@ add_message_files(
   FILES
   AngularVelocities.msg
   AngularVelocitiesStamped.msg
+  BaseControllerState.msg
+  BaseControllerStateStamped.msg
   Encoders.msg
   EncodersStamped.msg
   PID.msg

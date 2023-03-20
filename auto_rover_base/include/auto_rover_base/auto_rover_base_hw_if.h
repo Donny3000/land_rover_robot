@@ -14,8 +14,6 @@
 #include <hardware_interface/joint_state_interface.h>
 #include <hardware_interface/joint_command_interface.h>
 
-#include <auto_rover_base/pid.h>
-
 namespace auto_rover_base
 {
     const uint8_t NUM_JOINTS = 2;
@@ -205,11 +203,6 @@ namespace auto_rover_base
         ros::ServiceServer srv_start_;
         ros::ServiceServer srv_stop_;
 
-        // Declare publishers for the motor driver
-        ros::Publisher pub_left_motor_value_;
-        ros::Publisher pub_right_motor_value_;
-
-
         // Declare publishers for angular wheel joint velocities
         ros::Publisher pub_wheel_cmd_velocities_;
 
@@ -228,8 +221,6 @@ namespace auto_rover_base
         // Array to store the received encoder tick values from the \ref sub_encoder_ticks_ subscriber
         int encoder_ticks_[NUM_JOINTS];
         JointState measured_joint_states_[NUM_JOINTS];
-
-        PID pids_[NUM_JOINTS];
     };  // class DiffBotHWInterface
 }
 

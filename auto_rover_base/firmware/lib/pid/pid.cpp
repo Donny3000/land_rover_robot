@@ -15,7 +15,6 @@ namespace auto_rover
     double PID::compute(float setpoint, float measured_value)
     {
         double error;
-        double pid;
 
         //setpoint is constrained between min and max to prevent pid from having too much error
         error = setpoint - measured_value;
@@ -28,10 +27,10 @@ namespace auto_rover
             integral_ = 0;
         }
 
-        pid = (kp_ * proportional_) + (ki_ * integral_) + (kd_ * derivative_);
+        output_ = (kp_ * proportional_) + (ki_ * integral_) + (kd_ * derivative_);
         prev_error_ = error;
 
-        return constrain(pid, min_val_, max_val_);
+        return constrain(output_, min_val_, max_val_);
     }
 
     void PID::updateConstants(float kp, float ki, float kd)

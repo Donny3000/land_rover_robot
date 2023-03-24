@@ -39,7 +39,7 @@ namespace auto_rover
          * \param pin2 Pin of the second Hall effect sensor
          * \param encoder_resolution number of tick counts for one full revolution of the wheel (not the motor shaft). Keep track of gear reduction ratio.
          */
-        Encoder(ros::NodeHandle& nh, uint8_t pin1, uint8_t pin2, int encoder_resolution);
+        Encoder(ros::NodeHandle& nh, uint8_t pin1, uint8_t pin2, int32_t encoder_resolution);
 
         /** \brief get revolutions per minute
          *
@@ -74,7 +74,7 @@ namespace auto_rover
          * 
          * \returns angle corresponding to encoder ticks (rad)
          */
-        double ticksToAngle(const int &ticks) const;
+        double ticksToAngle(const int32_t &ticks) const;
 
         /** \brief Read the current encoder tick count
          * 
@@ -97,13 +97,13 @@ namespace auto_rover
          * 
          * \param resolution value to which the encoder tick count shoudl be set
          */
-        inline void resolution(int resolution) { encoder_resolution_ = resolution; };
+        inline void resolution(int32_t resolution) { encoder_resolution_ = resolution; };
 
         /** \brief Getter for encoder resolution
          * 
          * Returns the currently set encder resolution.
          */
-        inline int resolution() { return encoder_resolution_; };
+        inline int32_t resolution() { return encoder_resolution_; };
 
         /** \brief Getter for the \ref previous_encoder_ticks_ variable used to compute the joint state
          * 
@@ -119,7 +119,7 @@ namespace auto_rover
         ros::NodeHandle& nh_;
 
         // Number of tick counts for one full revolution of the wheel (not the motor shaft). Keep track of gear reduction ratio.
-        int encoder_resolution_;
+        int32_t encoder_resolution_;
 
         // Previous time when the \ref getRPM or \ref angularVelocity method was called to calculated the delta update time.
         ros::Time prev_update_time_;

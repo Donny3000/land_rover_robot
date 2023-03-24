@@ -1,8 +1,9 @@
+#include <auto_rover_base_config.h>
 #include "auto_rover_encoder.h"
 
 namespace auto_rover
 {
-  Encoder::Encoder(ros::NodeHandle& nh, uint8_t pin1, uint8_t pin2, int encoder_resolution)
+  Encoder::Encoder(ros::NodeHandle& nh, uint8_t pin1, uint8_t pin2, int32_t encoder_resolution)
   : nh_(nh)
   , encoder(pin1, pin2)
   , encoder_resolution_(encoder_resolution)
@@ -24,7 +25,7 @@ namespace auto_rover
       joint_state_.angular_position_ += delta_angle;
 
 
-      joint_state_.angular_velocity_ = delta_angle / dt;
+      joint_state_.angular_velocity_ = TO_RAD_PER_SEC(delta_angle / dt);
 
       prev_update_time_ = current_time;
       prev_encoder_ticks_ = encoder_ticks;
@@ -43,7 +44,7 @@ namespace auto_rover
       return joint_state_.angular_velocity_;
   }
 
-  double Encoder::ticksToAngle(const int &ticks) const
+  double Encoder::ticksToAngle(const int32_t &ticks) const
   {
     // Convert number of encoder ticks to angle in radians
     double angle = (double)ticks * (2.0*M_PI / encoder_resolution_);

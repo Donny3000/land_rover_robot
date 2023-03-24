@@ -13,9 +13,16 @@ namespace auto_rover
         double compute(float setpoint, float measured_value);
         void updateConstants(float kp, float ki, float kd);
 
-        inline double proportional() { return proportional_; }
-        inline double integral() { return integral_; }
-        inline double derivative() { return derivative_; }
+        inline float p_gain() { return kp_; }
+        inline float i_gain() { return ki_; }
+        inline float d_gain() { return kd_; }
+
+        inline float min_output() { return min_val_; }
+        inline float max_output() { return max_val_; }
+
+        inline double p_term() { return proportional_; }
+        inline double i_term() { return integral_; }
+        inline double d_term() { return derivative_; }
         inline double prev_error() { return prev_error_; }
         inline double output() { return output_; }
 

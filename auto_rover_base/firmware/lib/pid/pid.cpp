@@ -19,7 +19,7 @@ namespace auto_rover
         //setpoint is constrained between min and max to prevent pid from having too much error
         error = setpoint - measured_value;
         proportional_ = error;
-        integral_ += error;
+        integral_ += ki_ * error;
         derivative_ = error - prev_error_;
 
         if(setpoint == 0 && error == 0)
@@ -27,7 +27,7 @@ namespace auto_rover
             integral_ = 0;
         }
 
-        output_ = (kp_ * proportional_) + (ki_ * integral_) + (kd_ * derivative_);
+        output_ = (kp_ * proportional_) + integral_ + (kd_ * derivative_);
         prev_error_ = error;
 
         return constrain(output_, min_val_, max_val_);

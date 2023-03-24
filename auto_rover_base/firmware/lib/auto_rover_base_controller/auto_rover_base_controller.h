@@ -582,9 +582,13 @@ void auto_rover::BaseController<TMotorController, TMotorDriver>::write()
     motor_cmd_right_ = static_cast<int>(motor_pid_right_.compute(wheel_cmd_velocity_right_, joint_state_right_.angular_velocity_));
 
     p_motor_controller_->setMotorSpeeds(motor_cmd_left_, motor_cmd_right_);
-    if (motor_cmd_left_ == 0 || motor_cmd_right_ == 0)
+    if (motor_cmd_left_ == 0)
     {
-        p_motor_controller_->setMotorBrakes(POLOLU_VNH5019_BRAKE_MAX, POLOLU_VNH5019_BRAKE_MAX);
+        p_motor_controller_->setMotorLeftBrake(POLOLU_VNH5019_BRAKE_MAX);
+    }
+    if (motor_cmd_right_ == 0)
+    {
+        p_motor_controller_->setMotorRightBrake(POLOLU_VNH5019_BRAKE_MAX);
     }
 }
 
@@ -605,22 +609,29 @@ void auto_rover::BaseController<TMotorController, TMotorDriver>::eStop()
 template <typename TMotorController, typename TMotorDriver>
 void auto_rover::BaseController<TMotorController, TMotorDriver>::printDebug()
 {
-    bc_state_msg_.base_controller_state.ticks_left = ticks_left_;
-    bc_state_msg_.base_controller_state.ticks_right = ticks_right_;
-    bc_state_msg_.base_controller_state.measured_angular_velocity_left = joint_state_left_.angular_velocity_;
+    bc_state_msg_.base_controller_state.ticks_left                      = ticks_left_;
+    bc_state_msg_.base_controller_state.ticks_right                     = ticks_right_;
+    bc_state_msg_.base_controller_state.measured_angular_velocity_left  = joint_state_left_.angular_velocity_;
     bc_state_msg_.base_controller_state.measured_angular_velocity_right = joint_state_right_.angular_velocity_;
-    bc_state_msg_.base_controller_state.wheel_cmd_velocity_left = wheel_cmd_velocity_left_;
-    bc_state_msg_.base_controller_state.wheel_cmd_velocity_right = wheel_cmd_velocity_right_;
-    bc_state_msg_.base_controller_state.motor_command_left = motor_cmd_left_;
-    bc_state_msg_.base_controller_state.motor_command_right = motor_cmd_right_;\
-    bc_state_msg_.base_controller_state.pid_left_output = motor_pid_left_.output();
-    bc_state_msg_.base_controller_state.pid_right_output = motor_pid_right_.output();
-    bc_state_msg_.base_controller_state.pid_left_error_kp = motor_pid_left_.proportional();
-    bc_state_msg_.base_controller_state.pid_left_error_ki = motor_pid_left_.integral();
-    bc_state_msg_.base_controller_state.pid_left_error_kd = motor_pid_left_.derivative();
-    bc_state_msg_.base_controller_state.pid_right_error_kp = motor_pid_right_.proportional();
-    bc_state_msg_.base_controller_state.pid_right_error_ki = motor_pid_right_.integral();
-    bc_state_msg_.base_controller_state.pid_right_error_kd = motor_pid_right_.derivative();
+    bc_state_msg_.base_controller_state.wheel_cmd_velocity_left         = wheel_cmd_velocity_left_;
+    bc_state_msg_.base_controller_state.wheel_cmd_velocity_right        = wheel_cmd_velocity_right_;
+    bc_state_msg_.base_controller_state.motor_command_left              = motor_cmd_left_;
+    bc_state_msg_.base_controller_state.motor_command_right             = motor_cmd_right_;
+    bc_state_msg_.base_controller_state.pid_left_output                 = motor_pid_left_.output();
+    bc_state_msg_.base_controller_state.pid_left_kp                     = motor_pid_left_.p_gain();
+    bc_state_msg_.base_controller_state.pid_left_p_term                 = motor_pid_left_.p_term();
+    bc_state_msg_.base_controller_state.pid_left_ki                     = motor_pid_left_.i_gain();
+    bc_state_msg_.base_controller_state.pid_left_i_term                 = motor_pid_left_.i_term();
+    bc_state_msg_.base_controller_state.pid_left_kd                     = motor_pid_left_.d_gain();
+    bc_state_msg_.base_controller_state.pid_left_d_term                 = motor_pid_left_.d_term();
+
+    bc_state_msg_.base_controller_state.pid_right_output                = motor_pid_right_.output();
+    bc_state_msg_.base_controller_state.pid_right_kp                    = motor_pid_right_.p_gain();
+    bc_state_msg_.base_controller_state.pid_right_p_term                = motor_pid_right_.p_term();
+    bc_state_msg_.base_controller_state.pid_right_ki                    = motor_pid_right_.i_gain();
+    bc_state_msg_.base_controller_state.pid_right_i_term                = motor_pid_right_.i_term();
+    bc_state_msg_.base_controller_state.pid_right_kd                    = motor_pid_right_.d_gain();
+    bc_state_msg_.base_controller_state.pid_right_d_term                = motor_pid_right_.d_term();
     pub_bc_state_.publish(&bc_state_msg_);
 
     // String log_msg =

@@ -14,6 +14,7 @@ using namespace auto_rover;
 
 /* ROS Variables ---------------------------------------------------------<<<*/
 ros::NodeHandle nh_;
+bool is_initialized_ = false;
 /*------------------------------------------------------------------------>>>*/
 
 /* Third-Party Library Instantiations ------------------------------------>>>*/
@@ -33,61 +34,80 @@ void setup()
     bc_.setup();
     bc_.init();
     nh_.loginfo("auto_rover_base controller setup/initialization complete");
+
+    is_initialized_ = true;
 }
 
 void loop()
 {
     //static bool is_imu_initialized = false;
 
-    // Here is the main control loop for the base controller. This block drives
-    // the robot based on a defined control rate.
-    double command_dt = nh_.now().toSec() - bc_.lastUpdateTime().control.toSec();
-    if (command_dt >= bc_.publishRate().period().control_)
+    // Only run the control loop, if connected
+    if (nh_.connected())
     {
-        bc_.read();
-        bc_.write();
-        bc_.lastUpdateTime().control = nh_.now();
+        // Make sure the controller is initialized with parameters on the parameter server
+        if (!is_initialized_)
+        {
+            bc_.init();
+            is_initialized_ = true;
+        }
+
+        // Here is the main control loop for the base controller. This block drives
+        // the robot based on a defined control rate.
+        double command_dt = nh_.now().toSec() - bc_.lastUpdateTime().control.toSec();
+        if (command_dt >= bc_.publishRate().period().control_)
+        {
+            bc_.read();
+            bc_.write();
+            bc_.lastUpdateTime().control = nh_.now();
+        }
+
+        // This block stops the motors when no wheel command is received from the
+        // high-level hardware_interface::RobotHW.
+        command_dt = nh_.now().toSec() - bc_.lastUpdateTime().command_received.toSec();
+        if (command_dt >= ros::Duration(E_STOP_COMMAND_RECEIVED_DURATION, 0).toSec())
+        {
+            nh_.logwarn("Emergency STOP");
+            bc_.eStop();
+        }
+
+        // This block publishes IMU data based on a defined IMU rate
+        // double imu_dt = nh_.now().toSec() - bc_.lastUpdateTime().imu.toSec();
+        // if (imu_dt >= bc_.publishRate().period().imu_)
+        // {
+        //     // Sanity check if the IMU is connected
+        //     if (!is_imu_initialized)
+        //     {
+        //         if (is_imu_initialized)
+        //         {
+        //             nh_.loginfo("IMU Initialized");
+        //         }
+        //         else
+        //         {
+        //             nh_.logfatal("IMU failed to initialize. Check you IMU connection.");
+        //         }
+        //     }
+
+        //     bc_.lastUpdateTime().imu = nh_.now();
+        // }
+
+        // This block displays the encoder readings. Change DEBUG to 0 if you
+        // don't want to display.
+        double debug_dt = nh_.now().toSec() - bc_.lastUpdateTime().debug.toSec();
+        if (debug_dt >= bc_.publishRate().period().debug_ && bc_.debug())
+        {
+            bc_.printDebug();
+            bc_.lastUpdateTime().debug = nh_.now();
+        }
     }
-
-    // This block stops the motors when no wheel command is received from the
-    // high-level hardware_interface::RobotHW.
-    command_dt = nh_.now().toSec() - bc_.lastUpdateTime().command_received.toSec();
-    if (command_dt >= ros::Duration(E_STOP_COMMAND_RECEIVED_DURATION, 0).toSec())
+    else
     {
-        nh_.logwarn("Emergency STOP");
-        bc_.eStop();
-    }
-
-    // This block publishes IMU data based on a defined IMU rate
-    // double imu_dt = nh_.now().toSec() - bc_.lastUpdateTime().imu.toSec();
-    // if (imu_dt >= bc_.publishRate().period().imu_)
-    // {
-    //     // Sanity check if the IMU is connected
-    //     if (!is_imu_initialized)
-    //     {
-    //         if (is_imu_initialized)
-    //         {
-    //             nh_.loginfo("IMU Initialized");
-    //         }
-    //         else
-    //         {
-    //             nh_.logfatal("IMU failed to initialize. Check you IMU connection.");
-    //         }
-    //     }
-
-    //     bc_.lastUpdateTime().imu = nh_.now();
-    // }
-
-    // This block displays the encoder readings. Change DEBUG to 0 if you
-    // don't want to display.
-    double debug_dt = nh_.now().toSec() - bc_.lastUpdateTime().debug.toSec();
-    if (debug_dt >= bc_.publishRate().period().debug_ && bc_.debug())
-    {
-        bc_.printDebug();
-        bc_.lastUpdateTime().debug = nh_.now();
+        // Since we got disconnected, we need to reinitialize the controller when
+        // a new connection gets established, so we can get updated parameters
+        // from the parameter server.
+        is_initialized_ = false;
     }
 
     // Call all the callbacks waiting to be called
     nh_.spinOnce();
-    //delay(5);
 }

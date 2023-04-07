@@ -4,8 +4,8 @@
 namespace auto_rover
 {
   Encoder::Encoder(ros::NodeHandle& nh, uint8_t pin1, uint8_t pin2, int32_t encoder_resolution)
-  : nh_(nh)
-  , encoder(pin1, pin2)
+  : encoder(pin1, pin2)
+  , nh_(nh)
   , encoder_resolution_(encoder_resolution)
   , prev_update_time_(0, 0)
   , prev_encoder_ticks_(0)

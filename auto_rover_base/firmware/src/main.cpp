@@ -41,10 +41,15 @@ void setup()
 void loop()
 {
     //static bool is_imu_initialized = false;
+    static uint32_t command_dt, debug_dt;
+    static uint32_t curr_time;
+    double delta;
 
     // Only run the control loop, if connected
     if (nh_.connected())
     {
+        curr_time = nh_.now().toNsec();
+
         // Make sure the controller is initialized with parameters on the parameter server
         if (!is_initialized_)
         {
@@ -54,18 +59,19 @@ void loop()
 
         // Here is the main control loop for the base controller. This block drives
         // the robot based on a defined control rate.
-        double command_dt = nh_.now().toSec() - bc_.lastUpdateTime().control.toSec();
-        if (command_dt >= bc_.publishRate().period().control_)
+        command_dt = curr_time - bc_.lastUpdateTime().control.toNsec();
+        if (command_dt >= bc_.publishRate().period().control_nsec_)
         {
+            delta = static_cast<double>(command_dt * 1e-9);
             bc_.read();
-            bc_.write();
+            bc_.write(delta);
             bc_.lastUpdateTime().control = nh_.now();
         }
 
         // This block stops the motors when no wheel command is received from the
         // high-level hardware_interface::RobotHW.
-        command_dt = nh_.now().toSec() - bc_.lastUpdateTime().command_received.toSec();
-        if (command_dt >= ros::Duration(E_STOP_COMMAND_RECEIVED_DURATION, 0).toSec())
+        command_dt = curr_time - bc_.lastUpdateTime().command_received.toNsec();
+        if (command_dt >= (E_STOP_COMMAND_RECEIVED_DURATION_NS))
         {
             nh_.logwarn("Emergency STOP");
             bc_.eStop();
@@ -93,8 +99,8 @@ void loop()
 
         // This block displays the encoder readings. Change DEBUG to 0 if you
         // don't want to display.
-        double debug_dt = nh_.now().toSec() - bc_.lastUpdateTime().debug.toSec();
-        if (debug_dt >= bc_.publishRate().period().debug_ && bc_.debug())
+        debug_dt = curr_time - bc_.lastUpdateTime().debug.toNsec();
+        if (debug_dt >= bc_.publishRate().period().debug_nsec_ && bc_.debug())
         {
             bc_.printDebug();
             bc_.lastUpdateTime().debug = nh_.now();

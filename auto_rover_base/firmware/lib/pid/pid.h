@@ -10,7 +10,7 @@ namespace auto_rover
     {
     public:
         PID(float min_val, float max_val, float kp, float ki, float kd);
-        double compute(float setpoint, float measured_value);
+        double compute(float setpoint, float measured_value, double delta);
         void updateConstants(float kp, float ki, float kd);
 
         inline float p_gain() { return kp_; }
@@ -20,9 +20,10 @@ namespace auto_rover
         inline float min_output() { return min_val_; }
         inline float max_output() { return max_val_; }
 
-        inline double p_term() { return proportional_; }
-        inline double i_term() { return integral_; }
-        inline double d_term() { return derivative_; }
+        inline double error()  { return error_;  }
+        inline double p_term() { return p_term_; }
+        inline double i_term() { return i_term_; }
+        inline double d_term() { return d_term_; }
         inline double prev_error() { return prev_error_; }
         inline double output() { return output_; }
 
@@ -32,10 +33,14 @@ namespace auto_rover
         float kp_;
         float ki_;
         float kd_;
-        double proportional_;
-        double integral_;
-        double derivative_;
+        double p_term_;
+        double i_term_;
+        double d_term_;
         double prev_error_;
+        double error_;
+        double p_error_;
+        double i_error_;
+        double d_error_;
         double output_;
     };
 }

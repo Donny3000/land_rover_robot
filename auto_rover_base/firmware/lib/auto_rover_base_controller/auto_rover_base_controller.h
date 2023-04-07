@@ -130,14 +130,20 @@ namespace auto_rover
              */
             struct Period
             {
-                double imu_;
-                double control_;
-                double debug_;
+                double   imu_;
+                uint32_t imu_nsec_;
+                double   control_;
+                uint32_t control_nsec_;
+                double   debug_;
+                uint32_t debug_nsec_;
 
                 inline Period(double imu_frequency, double control_frequency, double debug_frequency)
                     : imu_(1.0 / imu_frequency)
+                    , imu_nsec_(imu_ * 1e9)
                     , control_(1.0 / control_frequency)
-                    , debug_(1.0 / debug_frequency) {};
+                    , control_nsec_(control_ * 1e9)
+                    , debug_(1.0 / debug_frequency)
+                    , debug_nsec_(debug_ * 1e9) {};
             } period_;
 
             inline Period& period() { return period_; };
@@ -286,7 +292,7 @@ namespace auto_rover
          * the left and right motors \ref p_motor_controller_
          * 
          */
-        void write();
+        void write(double& delta);
         void printDebug();
 
         /**
@@ -573,13 +579,13 @@ void auto_rover::BaseController<TMotorController, TMotorDriver>::read()
 }
 
 template <typename TMotorController, typename TMotorDriver>
-void auto_rover::BaseController<TMotorController, TMotorDriver>::write()
+void auto_rover::BaseController<TMotorController, TMotorDriver>::write(double& delta)
 {
     // Compute PID output
     // The value sent to the motor driver is calculated by the PID based on the error between commanded angular velocity vs measured angular velocity
     // The calculated PID ouput value is capped at -/+ MAX_RPM to prevent the PID from having too much error
-    motor_cmd_left_  = static_cast<int>(motor_pid_left_.compute( wheel_cmd_velocity_left_ , joint_state_left_.angular_velocity_));
-    motor_cmd_right_ = static_cast<int>(motor_pid_right_.compute(wheel_cmd_velocity_right_, joint_state_right_.angular_velocity_));
+    motor_cmd_left_  = static_cast<int>(motor_pid_left_.compute( wheel_cmd_velocity_left_ , joint_state_left_.angular_velocity_ , delta));
+    motor_cmd_right_ = static_cast<int>(motor_pid_right_.compute(wheel_cmd_velocity_right_, joint_state_right_.angular_velocity_, delta));
 
     p_motor_controller_->setMotorSpeeds(motor_cmd_left_, motor_cmd_right_);
     if (motor_cmd_left_ == 0)

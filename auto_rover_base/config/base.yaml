@@ -9,4 +9,4 @@ auto_rover:
   pwm_limit: 1.0
   debug:
     hardware_interface: false
-    base_controller: true
+    base_controller: false

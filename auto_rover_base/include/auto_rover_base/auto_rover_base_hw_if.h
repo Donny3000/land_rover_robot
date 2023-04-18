@@ -105,13 +105,6 @@ namespace auto_rover_base
          */
         bool isReceivingMeasuredJointStates(const ros::Duration &timeout=ros::Duration(1));
 
-        /** \brief Helper for debugging a joint's state */
-        virtual void printState();
-        std::string printStateHelper();
-
-        /** \brief Helper for debugging a joint's command */
-        std::string printCommandHelper();
-
     protected:
 
         /** \brief Get the URDF XML from the parameter server */

@@ -1,6 +1,8 @@
 #include <ros/ros.h>
 #include <auto_rover_base/auto_rover_base_hw_if.h>
 #include <controller_manager/controller_manager.h>
+
+#define RATE_100HZ 100.0 // Hertz
  
 int main(int argc, char **argv)
 {
@@ -23,16 +25,16 @@ int main(int argc, char **argv)
     spinner.start();
     
     // Setup for the control loop.
-    ros::Time prev_time = ros::Time::now();
-    ros::Rate rate(100.0); // 50 Hz rate
-    rate.sleep();
+    ros::Time     time, prev_time = ros::Time::now();
+    ros::Duration period;
+    ros::Rate     rate(RATE_100HZ);
 
     // Blocks until shutdown signal recieved
     while (ros::ok())
     {
         // Basic bookkeeping to get the system time in order to compute the control period.
-        const ros::Time     time   = ros::Time::now();
-        const ros::Duration period = time - prev_time;
+        time      = ros::Time::now();
+        period    = time - prev_time;
         prev_time = time;
 
         // Execution of the actual control loop.

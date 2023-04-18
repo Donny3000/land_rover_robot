@@ -124,16 +124,13 @@ namespace auto_rover_base
 
     void AutoRoverHWInterface::read(const ros::Time& time, const ros::Duration& period)
     {
-        //ROS_INFO_THROTTLE(1, "Read");
-        ros::Duration elapsed_time = period;
-
         // Read from robot hw (motor encoders)
         // Fill joint_state_* members with read values
         for (std::size_t i = 0; i < num_joints_; ++i)
         {
-            joint_positions_[i] = measured_joint_states_[i].angular_position_;
+            joint_positions_[i]  = measured_joint_states_[i].angular_position_;
             joint_velocities_[i] = measured_joint_states_[i].angular_velocity_;
-            joint_efforts_[i] = 0.0; // unused with diff_drive_controller
+            joint_efforts_[i]    = 0.0; // unused with diff_drive_controller
         }
 
         if (debug_)
@@ -151,13 +148,14 @@ namespace auto_rover_base
 
     void AutoRoverHWInterface::write(const ros::Time& time, const ros::Duration& period)
     {
-        ros::Duration elapsed_time = period;
+        static auto_rover_msgs::WheelsCmdStamped wheel_cmd_msg;
+
         // Write to robot hw
         // joint velocity commands from ros_control's RobotHW are in rad/s
 
         // adjusting k by gain and trim
         double motor_constant_right_inv = (gain_ + trim_) / motor_constant_;
-        double motor_constant_left_inv = (gain_ - trim_) / motor_constant_;
+        double motor_constant_left_inv  = (gain_ - trim_) / motor_constant_;
 
 
         joint_velocity_commands_[0] = joint_velocity_commands_[0] * motor_constant_left_inv;
@@ -165,7 +163,6 @@ namespace auto_rover_base
 
 
         // Publish the desired (commanded) angular wheel joint velocities
-        auto_rover_msgs::WheelsCmdStamped wheel_cmd_msg;
         wheel_cmd_msg.header.stamp = ros::Time::now();
         for (int i = 0; i < NUM_JOINTS; ++i)
         {
@@ -274,44 +271,10 @@ namespace auto_rover_base
             ROS_DEBUG_STREAM_NAMED(name_, "Received URDF from param server");
     }
 
-    void AutoRoverHWInterface::printState()
-    {
-        // WARNING: THIS IS NOT REALTIME SAFE
-        // FOR DEBUGGING ONLY, USE AT YOUR OWN ROBOT's RISK!
-        ROS_INFO_STREAM_THROTTLE(1, std::endl << printStateHelper());
-    }
-
-    std::string AutoRoverHWInterface::printStateHelper()
-    {
-        std::stringstream ss;
-        std::cout.precision(15);
-
-        for (std::size_t i = 0; i < num_joints_; ++i)
-        {
-            ss << "j" << i << ": " << std::fixed << joint_positions_[i] << "\t ";
-            ss << std::fixed << joint_velocities_[i] << "\t ";
-            ss << std::fixed << joint_efforts_[i] << std::endl;
-        }
-        return ss.str();
-    }
-
-    std::string AutoRoverHWInterface::printCommandHelper()
-    {
-        std::stringstream ss;
-        std::cout.precision(15);
-        ss << "    position     velocity         effort  \n";
-        for (std::size_t i = 0; i < num_joints_; ++i)
-        {
-            ss << std::fixed << joint_velocity_commands_[i] << "\t ";
-        }
-        return ss.str();
-    }
-
-
     /// Process updates from encoders
     void AutoRoverHWInterface::encoderTicksCallback(const auto_rover_msgs::EncodersStamped::ConstPtr& msg_encoder)
     {
-        /// Update current encoder ticks in encoders array
+        /// Update current encoder ticencoderTicksCallbackks in encoders array
         for(std::size_t i = 0; i < num_joints_; ++i)
         {
             encoder_ticks_[i] = msg_encoder->encoders.ticks[i];

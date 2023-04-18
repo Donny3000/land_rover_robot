@@ -120,6 +120,7 @@ namespace auto_rover
         {
             double imu_;
             double control_;
+            double publish_;
             double debug_;
 
             /**
@@ -132,18 +133,30 @@ namespace auto_rover
             {
                 double   imu_;
                 uint32_t imu_nsec_;
+
                 double   control_;
                 uint32_t control_nsec_;
+
+                double   publish_;
+                uint32_t publish_nsec_;
+
                 double   debug_;
                 uint32_t debug_nsec_;
 
-                inline Period(double imu_frequency, double control_frequency, double debug_frequency)
-                    : imu_(1.0 / imu_frequency)
-                    , imu_nsec_(imu_ * 1e9)
-                    , control_(1.0 / control_frequency)
+                inline Period(
+                        double imu_frequency,
+                        double control_frequency,
+                        double publish_frequency,
+                        double debug_frequency
+                    )
+                    : imu_         (1.0 / imu_frequency)
+                    , imu_nsec_    (imu_ * 1e9)
+                    , control_     (1.0 / control_frequency)
                     , control_nsec_(control_ * 1e9)
-                    , debug_(1.0 / debug_frequency)
-                    , debug_nsec_(debug_ * 1e9) {};
+                    , publish_     (1.0 / publish_frequency)
+                    , publish_nsec_(publish_ * 1e9)
+                    , debug_       (1.0 / debug_frequency)
+                    , debug_nsec_  (debug_ * 1e9) {};
             } period_;
 
             inline Period& period() { return period_; };
@@ -157,17 +170,21 @@ namespace auto_rover
              * 
              * @param imu_frequency Defines how often the imu is read and
              * published.
-             * @param control_frequency Defines how of then the control block
+             * @param control_frequency Defines how often the control block
              * is run (reading encoders and writing motor commands).
+             * @param publish_frequency Defines how frequency the base controller's
+             * joint state and encoder tick information is published.
              * @param debug_frequency Defines how often debug messages are output.
              */
             inline UpdateRate(double imu_frequency,
                               double control_frequency,
+                              double publish_frequency,
                               double debug_frequency)
-                : imu_(imu_frequency)
+                : imu_    (imu_frequency)
                 , control_(control_frequency)
-                , debug_(debug_frequency)
-                , period_(imu_frequency, control_frequency, debug_frequency) {};
+                , publish_(publish_frequency)
+                , debug_  (debug_frequency)
+                , period_ (imu_frequency, control_frequency, publish_frequency, debug_frequency) {};
         } update_rate_;
 
         inline UpdateRate& publishRate() { return update_rate_; };
@@ -195,6 +212,9 @@ namespace auto_rover
             ros::Time command_received;
             // Time when the last control update happened.
             ros::Time control;
+            // Time when the last joint state and encoder tick
+            // information was published
+            ros::Time publish;
             // Time when the last imu update took place.
             ros::Time imu;
             // Time when the last debug message was logged.
@@ -211,8 +231,9 @@ namespace auto_rover
             inline LastUpdateTime(ros::Time start)
                 : command_received(start.toSec(), start.toNsec())
                 , control(start.toSec(), start.toNsec())
-                , imu(start.toSec(), start.toNsec())
-                , debug(start.toSec(), start.toNsec()) {};
+                , publish(start.toSec(), start.toNsec())
+                , imu(    start.toSec(), start.toNsec())
+                , debug(  start.toSec(), start.toNsec()) {};
         } last_update_time_;
 
         /**
@@ -349,6 +370,14 @@ namespace auto_rover
          */
         void pidRightCallback(const auto_rover_msgs::PIDStamped& pid_msg);
 
+        /**
+         * @brief Publish the base controller joint state and encoder information
+         * 
+         * Publish the base controllers joint state and encoder information
+         * independently from control loop.
+        */
+       void publishBaseController();
+
     private:
         // Reference to global node handle from main.cpp
         ros::NodeHandle& nh_;
@@ -374,11 +403,6 @@ namespace auto_rover
         int encoder_resolution_;
 
         ros::Subscriber<std_msgs::Empty, BaseController<TMotorController, TMotorDriver>> sub_reset_encoders_;
-
-        // ROS Publisher setup to publish left and right encoder ticks
-        // This uses the custom encoder ticks message that defines an array of two integers
-        auto_rover_msgs::EncodersStamped encoder_msg_;
-        ros::Publisher pub_encoders_;
 
         auto_rover_msgs::BaseControllerStateStamped bc_state_msg_;
         ros::Publisher pub_bc_state_;
@@ -413,20 +437,19 @@ using BC = auto_rover::BaseController<TMotorController, TMotorDriver>;
 template <typename TMotorController, typename TMotorDriver>
 auto_rover::BaseController<TMotorController, TMotorDriver>
     ::BaseController(ros::NodeHandle &nh, TMotorController* motor_controller)
-    : update_rate_(UPDATE_RATE_IMU, UPDATE_RATE_CONTROL, UPDATE_RATE_DEBUG)
-    , last_update_time_(nh.now())
-    , nh_(nh)
-    , encoder_left_ (nh, ENCODER_LEFT_A , ENCODER_LEFT_B , ENCODER_RESOLUTION)
-    , encoder_right_(nh, ENCODER_RIGHT_A, ENCODER_RIGHT_B, ENCODER_RESOLUTION)
-    , sub_reset_encoders_("reset", &BC<TMotorController, TMotorDriver>::resetEncodersCallback, this)
-    , pub_encoders_ ("encoder_ticks", &encoder_msg_)
-    , pub_bc_state_ ("controller_state", &bc_state_msg_)
+    : update_rate_              (UPDATE_RATE_IMU, UPDATE_RATE_CONTROL, UPDATE_RATE_PUBLISH, UPDATE_RATE_DEBUG)
+    , last_update_time_         (nh.now())
+    , nh_                       (nh)
+    , encoder_left_             (nh, ENCODER_LEFT_A , ENCODER_LEFT_B , ENCODER_RESOLUTION)
+    , encoder_right_            (nh, ENCODER_RIGHT_A, ENCODER_RIGHT_B, ENCODER_RESOLUTION)
+    , sub_reset_encoders_       ("reset", &BC<TMotorController, TMotorDriver>::resetEncodersCallback, this)
+    , pub_bc_state_             ("controller_state", &bc_state_msg_)
     , pub_measured_joint_states_("measured_joint_states", &msg_measured_joint_states_)
-    , sub_wheel_cmd_velocities_("wheel_cmd_velocities", &BC<TMotorController, TMotorDriver>::commandCallback, this)
-    , sub_pid_left_( "pid_left" , &BC<TMotorController, TMotorDriver>::pidLeftCallback , this)
-    , sub_pid_right_("pid_right", &BC<TMotorController, TMotorDriver>::pidRightCallback, this)
-    , motor_pid_left_( -POLOLU_VNH5019_SPEED_MAX, POLOLU_VNH5019_SPEED_MAX, K_P, K_I, K_D)
-    , motor_pid_right_(-POLOLU_VNH5019_SPEED_MAX, POLOLU_VNH5019_SPEED_MAX, K_P, K_I, K_D)
+    , sub_wheel_cmd_velocities_ ("wheel_cmd_velocities", &BC<TMotorController, TMotorDriver>::commandCallback, this)
+    , sub_pid_left_             ( "pid_left" , &BC<TMotorController, TMotorDriver>::pidLeftCallback , this)
+    , sub_pid_right_            ("pid_right", &BC<TMotorController, TMotorDriver>::pidRightCallback, this)
+    , motor_pid_left_           ( -POLOLU_VNH5019_SPEED_MAX, POLOLU_VNH5019_SPEED_MAX, K_P, K_I, K_D)
+    , motor_pid_right_          (-POLOLU_VNH5019_SPEED_MAX, POLOLU_VNH5019_SPEED_MAX, K_P, K_I, K_D)
 {
     p_motor_controller_ = motor_controller;
 }
@@ -449,7 +472,6 @@ void auto_rover::BaseController<TMotorController, TMotorDriver>::setup()
     msg_measured_joint_states_.velocity_length = NUM_OF_JOINTS;
 
     nh_.advertise(pub_measured_joint_states_);
-    nh_.advertise(pub_encoders_);
     nh_.advertise(pub_bc_state_);
 
     nh_.subscribe(sub_wheel_cmd_velocities_);
@@ -517,7 +539,7 @@ template <typename TMotorController, typename TMotorDriver>
 void auto_rover::BaseController<TMotorController, TMotorDriver>::resetEncodersCallback(const std_msgs::Empty& reset_msg)
 {
     // reset both back to zero.
-    this->encoder_left_.write(0);
+    this->encoder_left_.write (0);
     this->encoder_right_.write(0);
     this->nh_.loginfo("Reset both wheel encoders to zero");
 }
@@ -565,17 +587,6 @@ void auto_rover::BaseController<TMotorController, TMotorDriver>::read()
 
     msg_measured_joint_states_.velocity[0] = joint_state_left_.angular_velocity_;
     msg_measured_joint_states_.velocity[1] = joint_state_right_.angular_velocity_;
-
-    pub_measured_joint_states_.publish(&msg_measured_joint_states_);
-
-    // get the current tick count of each encoder
-    ticks_left_ = encoder_left_.read();
-    ticks_right_ = encoder_right_.read();
-
-    encoder_msg_.encoders.ticks[0] = ticks_left_;
-    encoder_msg_.encoders.ticks[1] = ticks_right_;
-
-    pub_encoders_.publish(&encoder_msg_);
 }
 
 template <typename TMotorController, typename TMotorDriver>
@@ -599,6 +610,13 @@ void auto_rover::BaseController<TMotorController, TMotorDriver>::write(double& d
 }
 
 template <typename TMotorController, typename TMotorDriver>
+void auto_rover::BaseController<TMotorController, TMotorDriver>::publishBaseController()
+{
+    // Publish the joint state information
+    pub_measured_joint_states_.publish(&msg_measured_joint_states_);
+}
+
+template <typename TMotorController, typename TMotorDriver>
 void auto_rover::BaseController<TMotorController, TMotorDriver>::eStop()
 {
     // Brake the motors
@@ -615,8 +633,6 @@ void auto_rover::BaseController<TMotorController, TMotorDriver>::eStop()
 template <typename TMotorController, typename TMotorDriver>
 void auto_rover::BaseController<TMotorController, TMotorDriver>::printDebug()
 {
-    bc_state_msg_.base_controller_state.ticks_left                      = ticks_left_;
-    bc_state_msg_.base_controller_state.ticks_right                     = ticks_right_;
     bc_state_msg_.base_controller_state.measured_angular_velocity_left  = joint_state_left_.angular_velocity_;
     bc_state_msg_.base_controller_state.measured_angular_velocity_right = joint_state_right_.angular_velocity_;
     bc_state_msg_.base_controller_state.wheel_cmd_velocity_left         = wheel_cmd_velocity_left_;
@@ -642,8 +658,6 @@ void auto_rover::BaseController<TMotorController, TMotorDriver>::printDebug()
 
     // String log_msg =
     //         String("\nRead:") +
-    //             String("\n\t- ticks_left_                 : ") + String(ticks_left_) +
-    //             String("\n\t- ticks_right_                : ") + String(ticks_right_) +
     //             String("\n\t- measured_ang_vel_left       : ") + String(joint_state_left_.angular_velocity_) +
     //             String("\n\t- measured_ang_vel_right      : ") + String(joint_state_right_.angular_velocity_) +
     //             String("\n\t- wheel_cmd_velocity_left_    : ") + String(wheel_cmd_velocity_left_) +

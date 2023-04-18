@@ -41,9 +41,9 @@ void setup()
 void loop()
 {
     //static bool is_imu_initialized = false;
-    static uint32_t command_dt, debug_dt;
-    static uint32_t curr_time;
-    double delta;
+    static uint32_t  command_dt, debug_dt, curr_time, ctrl_pub_dt;
+    static ros::Time curr_ros_time;
+    double           delta;
 
     // Only run the control loop, if connected
     if (nh_.connected())
@@ -59,13 +59,25 @@ void loop()
 
         // Here is the main control loop for the base controller. This block drives
         // the robot based on a defined control rate.
-        command_dt = curr_time - bc_.lastUpdateTime().control.toNsec();
+        command_dt   = curr_time - bc_.lastUpdateTime().control.toNsec();
         if (command_dt >= bc_.publishRate().period().control_nsec_)
         {
             delta = static_cast<double>(command_dt * 1e-9);
             bc_.read();
             bc_.write(delta);
-            bc_.lastUpdateTime().control = nh_.now();
+
+            curr_ros_time = nh_.now();
+
+            // Publish the controller joint states at a lower frequency than
+            // the control loop
+            ctrl_pub_dt  = curr_time - bc_.lastUpdateTime().publish.toNsec();
+            if (ctrl_pub_dt >= bc_.publishRate().period().publish_nsec_)
+            {
+                bc_.publishBaseController();
+                bc_.lastUpdateTime().publish = curr_ros_time;
+            }
+
+            bc_.lastUpdateTime().control = curr_ros_time;
         }
 
         // This block stops the motors when no wheel command is received from the

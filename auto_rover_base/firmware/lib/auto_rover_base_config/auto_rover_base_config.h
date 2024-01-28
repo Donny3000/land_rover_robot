@@ -30,7 +30,7 @@
 #define K_P                              1024 //0.6 // P constant
 #define K_I                              0 //0.3 // I constant
 #define K_D                              0 //0.5 // D constant
-#define ANTIWINDUP                       true
+#define ANTIWINDUP                       false
 #define I_MIN                            -3.5
 #define I_MAX                            3.5
 #define PWM_BITS                         16  // PWM Resolution of the microcontroller

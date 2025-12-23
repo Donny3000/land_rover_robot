@@ -2,6 +2,9 @@
 #define AUTO_ROVER_ENCODER_H
 
 #include <ros.h>
+// This optional setting causes Encoder to use more optimized code,
+// It must be defined before Encoder.h is included.
+#define ENCODER_OPTIMIZE_INTERRUPTS
 #include <Encoder.h>
 
 namespace auto_rover
